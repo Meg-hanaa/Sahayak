@@ -62,7 +62,7 @@ export const ConversationExample: React.FC = () => {
       className="sahayak-conversation-section"
       aria-labelledby="conversation-example-title"
     >
-      <div className="sahayak-container">
+      <div className="sahayak-home-wrapper">
         {/* Screen Reader Announcement Live Region */}
         <div
           className="sr-only sahayak-sr-only"

@@ -138,7 +138,7 @@ export const HomePage: React.FC = () => {
 
       {/* Full-width Sticky Header */}
       <header className={`sahayak-header ${isScrolled ? 'sahayak-header--stuck' : ''}`}>
-        <div className="sahayak-container sahayak-header__inner">
+        <div className="sahayak-home-wrapper sahayak-header__inner">
           <Link to="/" className="sahayak-brand" aria-label="Sahayak homepage">
             <img
               src="/images/logo.png"
@@ -189,7 +189,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           {/* Hero Content with Subtle Entrance Animation */}
-          <div className="sahayak-container sahayak-hero-inner">
+          <div className="sahayak-home-wrapper sahayak-hero-inner">
             <div className="sahayak-hero-content">
               <p
                 className={`sahayak-hero-eyebrow ${
@@ -248,7 +248,7 @@ export const HomePage: React.FC = () => {
           className="sahayak-features-section"
           aria-labelledby="features-title"
         >
-          <div className="sahayak-container">
+          <div className="sahayak-home-wrapper">
             <div className="sahayak-section-header">
               <h2 id="features-title" className="sahayak-section-title">
                 Keep the conversation clear
@@ -300,7 +300,7 @@ export const HomePage: React.FC = () => {
           className="sahayak-how-section"
           aria-labelledby="how-title"
         >
-          <div className="sahayak-container">
+          <div className="sahayak-home-wrapper">
             <div className="sahayak-how-grid">
               <div className="sahayak-how-intro-col">
                 <h2 id="how-title" className="sahayak-section-title">
@@ -355,7 +355,7 @@ export const HomePage: React.FC = () => {
 
       {/* Full-width Footer */}
       <footer className="sahayak-footer">
-        <div className="sahayak-container sahayak-footer__inner">
+        <div className="sahayak-home-wrapper sahayak-footer__inner">
           <div className="sahayak-footer__brand-group">
             <div className="sahayak-footer__brand">
               <img
