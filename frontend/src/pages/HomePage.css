@@ -77,7 +77,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   Header & Navigation (Full-width, Sticky, Compact ~72-80px tall)
+   Header & Navigation (Full-width, Sticky, 64-72px on Mobile, 72-80px on Desktop)
    -------------------------------------------------------------------------- */
 .sahayak-header {
   width: 100%;
@@ -106,7 +106,13 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  min-height: 72px;
+  min-height: 64px;
+}
+
+@media (min-width: 768px) {
+  .sahayak-header__inner {
+    min-height: 72px;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -145,10 +151,23 @@
   color: var(--color-midnight);
 }
 
-.sahayak-nav {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
+/* Desktop Navigation (Only shown when items fit comfortably on one row >=768px) */
+.sahayak-nav--desktop {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .sahayak-nav--desktop {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+}
+
+@media (min-width: 1024px) {
+  .sahayak-nav--desktop {
+    gap: var(--space-3);
+  }
 }
 
 .sahayak-nav__link {
@@ -156,13 +175,19 @@
   align-items: center;
   justify-content: center;
   min-height: 44px;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.875rem;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-secondary);
   text-decoration: none;
   border-radius: var(--radius-md);
   transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+@media (min-width: 1024px) {
+  .sahayak-nav__link {
+    padding: 0.5rem 1rem;
+  }
 }
 
 .sahayak-nav__link:hover {
@@ -182,36 +207,99 @@
   font-size: var(--font-size-sm);
 }
 
-@media (max-width: 639px) {
-  .sahayak-header__inner {
-    flex-direction: column;
-    align-items: stretch;
-    padding-top: var(--space-3);
-    padding-bottom: var(--space-3);
-    gap: var(--space-2);
-    min-height: auto;
-  }
+/* Mobile Menu Disclosure Toggle Button (<768px) */
+.sahayak-header__menu-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 14px;
+  background-color: transparent;
+  color: var(--color-midnight);
+  border: 1px solid var(--color-dust);
+  border-radius: var(--radius-md);
+  font-family: var(--font-english);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
 
-  .sahayak-nav {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    width: 100%;
-  }
+.sahayak-header__menu-toggle:hover {
+  background-color: var(--color-ocean-subtle);
+  border-color: var(--color-ocean);
+}
 
-  .sahayak-nav__link {
-    min-height: 44px;
-    padding: 0.5rem 0.75rem;
-    font-size: var(--font-size-sm);
-  }
+.sahayak-header__menu-toggle:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
 
-  .sahayak-nav__action {
-    min-height: 44px;
-    padding: 0.5rem 1rem;
-    font-size: var(--font-size-sm);
-    margin-left: auto;
+.sahayak-header__menu-icon {
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .sahayak-header__menu-toggle {
+    display: none;
   }
+}
+
+/* Mobile Expandable Disclosure Drawer */
+.sahayak-mobile-menu {
+  width: 100%;
+  background-color: var(--color-snow);
+  border-bottom: 1px solid var(--color-dust);
+  padding: var(--space-3) 0 var(--space-5);
+  box-shadow: 0 4px 14px rgba(34, 40, 44, 0.08);
+}
+
+.sahayak-mobile-menu[hidden] {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .sahayak-mobile-menu {
+    display: none !important;
+  }
+}
+
+.sahayak-mobile-menu__nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-inline: clamp(20px, 4vw, 80px);
+}
+
+.sahayak-mobile-menu__link {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-midnight);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: background-color var(--transition-fast);
+}
+
+.sahayak-mobile-menu__link:hover {
+  background-color: var(--color-ocean-subtle);
+}
+
+.sahayak-mobile-menu__link:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.sahayak-mobile-menu__action {
+  margin-top: var(--space-2);
+  width: 100%;
+  min-height: 48px;
+  justify-content: center;
+  font-size: var(--font-size-base);
 }
 
 /* --------------------------------------------------------------------------
@@ -245,7 +333,9 @@
 }
 
 /* --------------------------------------------------------------------------
-   Hero Section - One Integrated Photographic Surface with Parallax
+   Hero Section - Responsive Photographic Surface
+   Desktop: Photographic background with restrained scrim
+   Mobile: Content in normal flow on solid background with edge-to-edge image below
    -------------------------------------------------------------------------- */
 .sahayak-hero-section {
   position: relative;
@@ -255,36 +345,44 @@
   overflow: hidden;
 }
 
-/* Photographic Backdrop Layer */
+/* Photographic Backdrop Layer (Desktop only) */
 .sahayak-hero-backdrop {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
+  display: none;
 }
 
-.sahayak-hero-backdrop__image {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 85% center;
-}
+@media (min-width: 768px) {
+  .sahayak-hero-backdrop {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
 
-/* Desktop Parallax: 32px vertical overscan prevents empty edges during translation */
-@media (min-width: 1024px) {
   .sahayak-hero-backdrop__image {
-    height: calc(100% + 32px);
-    top: -16px;
-    position: relative;
-    will-change: transform;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 85% 22%; /* Breathing room above doctor's head while keeping laptop visible */
   }
 }
 
-/* Restrained Readability Scrim (Neutral white fade, not decorative brand tint) */
+/* Desktop Parallax (>=1024px) */
+@media (min-width: 1024px) {
+  .sahayak-hero-backdrop__image {
+    height: calc(100% + 40px);
+    top: -20px;
+    position: relative;
+    will-change: transform;
+    object-position: 85% 24%;
+  }
+}
+
+/* Desktop Scrim - High contrast behind text, fades before doctor/laptop */
 .sahayak-hero-backdrop__scrim {
   position: absolute;
   inset: 0;
@@ -292,22 +390,30 @@
   background: linear-gradient(
     to right,
     rgba(255, 255, 255, 0.98) 0%,
-    rgba(255, 255, 255, 0.94) 38%,
-    rgba(255, 255, 255, 0.5) 54%,
-    rgba(255, 255, 255, 0) 72%
+    rgba(255, 255, 255, 0.92) 34%,
+    rgba(255, 255, 255, 0.35) 46%,
+    rgba(255, 255, 255, 0) 58%
   );
 }
 
-/* Hero Content Wrapper in Normal Document Flow */
+/* Hero Content Wrapper */
 .sahayak-hero-inner {
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: 480px;
+  min-height: auto;
   padding-top: var(--space-8);
-  padding-bottom: var(--space-8);
+  padding-bottom: 0;
+}
+
+@media (min-width: 768px) {
+  .sahayak-hero-inner {
+    min-height: 480px;
+    padding-top: var(--space-10);
+    padding-bottom: var(--space-10);
+  }
 }
 
 @media (min-width: 1024px) {
@@ -318,12 +424,20 @@
   }
 }
 
-/* Hero Copy Area (Kept to Left Side: ~560-600px Wide) */
+/* Hero Content Container */
 .sahayak-hero-content {
-  max-width: 580px;
+  width: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  margin-bottom: 0;
+}
+
+@media (min-width: 768px) {
+  .sahayak-hero-content {
+    max-width: 580px; /* ~560-600px desktop constraint */
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -371,19 +485,26 @@
 
 /* Quiet Text Eyebrow (Not a prominent rounded badge) */
 .sahayak-hero-eyebrow {
-  font-size: var(--font-size-sm);
+  font-size: 0.8125rem; /* ~13px */
   font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
   color: var(--color-text-secondary);
   text-transform: uppercase;
   margin-bottom: var(--space-1);
+  line-height: 1.4;
+}
+
+@media (min-width: 768px) {
+  .sahayak-hero-eyebrow {
+    font-size: var(--font-size-sm);
+  }
 }
 
 /* Hero Heading */
 .sahayak-hero-heading {
-  font-size: 1.875rem; /* ~30px on mobile */
+  font-size: 1.9375rem; /* ~31px (30-32px on mobile) */
   font-weight: var(--font-weight-bold);
-  line-height: 1.18;
+  line-height: 1.22;
   letter-spacing: -0.02em;
   color: var(--color-midnight);
 }
@@ -391,6 +512,7 @@
 @media (min-width: 768px) {
   .sahayak-hero-heading {
     font-size: 2.25rem; /* 36px on tablet */
+    line-height: 1.18;
   }
 }
 
@@ -401,26 +523,27 @@
 }
 
 .sahayak-hero-heading-break {
-  display: block;
+  display: inline;
 }
 
-@media (max-width: 520px) {
+@media (min-width: 768px) {
   .sahayak-hero-heading-break {
-    display: inline;
+    display: block;
   }
 }
 
 /* Hero Description */
 .sahayak-hero-description {
-  font-size: var(--font-size-base);
-  line-height: var(--line-height-relaxed);
+  font-size: 1rem; /* 16px on mobile */
+  line-height: 1.6;
   color: var(--color-text-secondary);
-  max-width: 580px;
+  max-width: 50ch; /* ~48-52 characters per line */
 }
 
 @media (min-width: 768px) {
   .sahayak-hero-description {
-    font-size: 1.125rem; /* 18px */
+    font-size: 1.125rem; /* 18px on tablet/desktop */
+    line-height: var(--line-height-relaxed);
   }
 }
 
@@ -429,22 +552,31 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: var(--space-3);
+  gap: 14px; /* ~12-16px */
   margin-top: var(--space-2);
 }
 
-@media (min-width: 480px) {
+@media (min-width: 768px) {
   .sahayak-hero-actions {
     flex-direction: row;
     align-items: center;
+    gap: var(--space-4);
   }
 }
 
 .sahayak-hero-btn {
+  width: 100%;
   min-height: 48px;
   padding: 0.75rem 1.5rem;
   font-size: var(--font-size-base);
+  justify-content: center;
   text-align: center;
+}
+
+@media (min-width: 768px) {
+  .sahayak-hero-btn {
+    width: auto;
+  }
 }
 
 .sahayak-hero-secondary-link {
@@ -456,10 +588,17 @@
   color: var(--color-midnight);
   text-decoration: underline;
   text-underline-offset: 4px;
-  min-height: 48px;
+  min-height: 44px;
   padding: 0.5rem 1rem;
   border-radius: var(--radius-sm);
+  text-align: center;
   transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+@media (min-width: 768px) {
+  .sahayak-hero-secondary-link {
+    text-align: left;
+  }
 }
 
 .sahayak-hero-secondary-link:hover {
@@ -472,48 +611,28 @@
   outline-offset: 2px;
 }
 
-/* Mobile Hero Adjustments (<768px) */
-@media (max-width: 767px) {
-  .sahayak-hero-section {
-    background-color: var(--color-snow);
-  }
+/* Mobile Edge-to-Edge Photograph (Shown only on mobile <768px directly below actions) */
+.sahayak-hero-mobile-image-wrap {
+  display: block;
+  width: 100%;
+  margin-top: 28px; /* ~24-32px between final action and photograph */
+  line-height: 0;
+  overflow: hidden;
+}
 
-  .sahayak-hero-backdrop {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 360px;
-    top: auto;
-  }
+.sahayak-hero-mobile-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
 
-  .sahayak-hero-backdrop__image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: 88% 85%;
-  }
-
-  .sahayak-hero-backdrop__scrim {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      to bottom,
-      rgba(255, 255, 255, 1) 0%,
-      rgba(255, 255, 255, 0.98) 46%,
-      rgba(255, 255, 255, 0.3) 56%,
-      rgba(255, 255, 255, 0) 68%
-    );
-  }
-
-  .sahayak-hero-inner {
-    min-height: auto;
-    padding-top: var(--space-6);
-    padding-bottom: 0;
-  }
-
-  .sahayak-hero-content {
-    margin-bottom: 250px; /* Clear photographic window displaying doctor & patient */
+@media (min-width: 768px) {
+  .sahayak-hero-mobile-image-wrap {
+    display: none;
   }
 }
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Languages, ShieldCheck, FileText } from 'lucide-react';
+import { Languages, ShieldCheck, FileText, Menu, X } from 'lucide-react';
 import { ConversationExample } from '../components/ConversationExample';
 import '../components/Button.css';
 import './HomePage.css';
@@ -8,14 +8,40 @@ import './HomePage.css';
 export const HomePage: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const heroRef = useRef<HTMLElement | null>(null);
   const heroImageRef = useRef<HTMLImageElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const mobileMenuToggleRef = useRef<HTMLButtonElement | null>(null);
 
   // Trigger entrance animation once on mount
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Close mobile disclosure on Escape key and return focus to toggle button
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsMobileMenuOpen(false);
+        mobileMenuToggleRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isMobileMenuOpen]);
+
+  // Close mobile menu if viewport widens to desktop
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth >= 768 && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [isMobileMenuOpen]);
 
   // 1. Sticky Header IntersectionObserver Sentinel
   useEffect(() => {
@@ -139,7 +165,12 @@ export const HomePage: React.FC = () => {
       {/* Full-width Sticky Header */}
       <header className={`sahayak-header ${isScrolled ? 'sahayak-header--stuck' : ''}`}>
         <div className="sahayak-home-wrapper sahayak-header__inner">
-          <Link to="/" className="sahayak-brand" aria-label="Sahayak homepage">
+          <Link
+            to="/"
+            className="sahayak-brand"
+            aria-label="Sahayak homepage"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
             <img
               src="/images/logo.png"
               alt=""
@@ -151,7 +182,8 @@ export const HomePage: React.FC = () => {
             <span className="sahayak-brand__wordmark">Sahayak</span>
           </Link>
 
-          <nav className="sahayak-nav" aria-label="Primary navigation">
+          {/* Desktop Navigation (Only rendered when items fit comfortably) */}
+          <nav className="sahayak-nav sahayak-nav--desktop" aria-label="Primary navigation">
             <a href="#how-it-works" className="sahayak-nav__link">
               How it works
             </a>
@@ -161,6 +193,57 @@ export const HomePage: React.FC = () => {
             <Link
               to="/consultation/new"
               className="sahayak-button sahayak-button--primary sahayak-nav__action"
+            >
+              Start a consultation
+            </Link>
+          </nav>
+
+          {/* Mobile Labelled Disclosure Menu Toggle Button */}
+          <button
+            type="button"
+            ref={mobileMenuToggleRef}
+            className="sahayak-header__menu-toggle"
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="sahayak-mobile-menu"
+            aria-label={isMobileMenuOpen ? 'Close navigation' : 'Open navigation'}
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+          >
+            <span className="sahayak-header__menu-toggle-label">
+              {isMobileMenuOpen ? 'Close' : 'Menu'}
+            </span>
+            {isMobileMenuOpen ? (
+              <X size={20} aria-hidden="true" className="sahayak-header__menu-icon" />
+            ) : (
+              <Menu size={20} aria-hidden="true" className="sahayak-header__menu-icon" />
+            )}
+          </button>
+        </div>
+
+        {/* Expandable Mobile Navigation Disclosure */}
+        <div
+          id="sahayak-mobile-menu"
+          className={`sahayak-mobile-menu ${isMobileMenuOpen ? 'sahayak-mobile-menu--open' : ''}`}
+          hidden={!isMobileMenuOpen}
+        >
+          <nav className="sahayak-mobile-menu__nav" aria-label="Mobile navigation">
+            <a
+              href="#how-it-works"
+              className="sahayak-mobile-menu__link"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              How it works
+            </a>
+            <Link
+              to="/join"
+              className="sahayak-mobile-menu__link"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Join with invite
+            </Link>
+            <Link
+              to="/consultation/new"
+              className="sahayak-button sahayak-button--primary sahayak-mobile-menu__action"
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               Start a consultation
             </Link>
@@ -176,7 +259,7 @@ export const HomePage: React.FC = () => {
           className="sahayak-hero-section"
           aria-labelledby="hero-heading"
         >
-          {/* Photographic Background Layer with Parallax Target */}
+          {/* Desktop Photographic Background Layer with Parallax Target */}
           <div className="sahayak-hero-backdrop" aria-hidden="true">
             <img
               ref={heroImageRef}
@@ -237,6 +320,16 @@ export const HomePage: React.FC = () => {
                 </Link>
               </div>
             </div>
+          </div>
+
+          {/* Mobile Edge-to-Edge Photograph (Directly beneath actions on solid background) */}
+          <div className="sahayak-hero-mobile-image-wrap">
+            <img
+              src="/images/hero-consultation.png"
+              alt="Doctor having a video consultation with a patient on a laptop"
+              className="sahayak-hero-mobile-image"
+              loading="eager"
+            />
           </div>
         </section>
 
