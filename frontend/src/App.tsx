@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { HomePage } from './pages/HomePage';
+import { FoundationPreviewPage } from './pages/FoundationPreviewPage';
 import {
   DoctorSetupPage,
   PatientJoinPage,
@@ -15,6 +16,7 @@ export const App: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/dev/foundation" element={<FoundationPreviewPage />} />
       <Route path="/consultation/new" element={<DoctorSetupPage />} />
       <Route path="/join" element={<PatientJoinPage />} />
       <Route path="/join/:token" element={<PatientAudioCheckPage />} />

@@ -2,31 +2,29 @@
 
 Sahayak is a browser-based voice interpretation system connecting an English-speaking doctor and a Hindi-speaking patient.
 
-This package contains the React, Vite, and TypeScript frontend client. Phase 1 establishes the project setup, design system tokens, accessible reusable components, and routing foundation.
+This package contains the React, Vite, and TypeScript frontend client.
 
 ---
 
-## What Phase 1 Includes
+## What Phase 2 Includes
 
-- **Tech Stack**: React 19, Vite, TypeScript, React Router 7, and Lucide React with plain CSS.
-- **Design Foundation**:
-  - Semantic CSS custom properties for the 5-color palette: Midnight (`#22282C`), Ocean (`#929FA7`), Earth (`#E9E7E1`), Dust (`#E0E6EA`), and Snow (`#FFFFFF`).
-  - Strict WCAG AAA/AA color contrast compliance.
-  - Bilingual font stack: Inter for English and Noto Sans Devanagari for Hindi.
-  - Restrained typography and spacing tokens.
-- **Reusable Accessible Components**:
-  - `Button`: Primary and secondary variants, disabled state, accessible focus-visible rings, explicit button types.
-  - `Container`: Centered layout with responsive side padding (mobile 375px, tablet 768px, desktop 1440px).
-  - `FormField`: Explicit label-to-input association, helper text, and accessible error state (`role="alert"`, `aria-invalid`, `aria-describedby`).
-- **Application Routing**:
-  - `/` - Foundation preview with component specimens, palette swatches, asset previews, and route links.
-  - `/consultation/new` - Doctor consultation setup placeholder.
-  - `/join` - Patient join portal placeholder.
-  - `/join/:token` - Patient microphone and audio check placeholder.
-  - `/doctor/:sessionId` - Doctor consultation screen placeholder.
-  - `/patient/:sessionId` - Patient consultation screen placeholder.
-  - `/record/:sessionId` - Post-consultation bilingual clinical record placeholder.
-  - `*` - 404 Not Found fallback page.
+- **Full-Width Responsive Homepage (`/`)**:
+  - Full-width layout spanning the available viewport width without an artificial boxed frame or floating card container.
+  - Compact, accessible header navigation (~72–80px tall on desktop) aligned to inner content gutters with a skip-to-main-content link (`#main-content`).
+  - Integrated photographic hero surface with the clinical consultation photograph (`/images/hero-consultation.png`) positioned as the background layer behind the content.
+  - Hero copy placed on the left over natural negative space with a restrained, neutral white readability scrim, leaving the doctor and the patient on the laptop screen unobscured across all breakpoints.
+  - Quiet text label for "English ↔ Hindi voice interpretation" (without rounded badge borders).
+  - Restrained 3-item hero information strip in normal document flow (Doctor language: English, Patient language: हिन्दी, Connection: Private invitation link) clear of faces and the laptop screen.
+  - Simplified, open feature columns ("Keep the conversation clear") without individual card borders, boxes, or hover treatments.
+  - Semantic ordered-list "How it works" section with simple numbered steps (1, 2, 3) that stack naturally on mobile.
+  - Full-width footer retaining the project tagline and hackathon prototype disclaimer.
+- **Relocated Foundation Preview (`/dev/foundation`)**:
+  - The Phase 1 design system preview, component specimens, and route testing links remain available at `/dev/foundation` for developer testing.
+- **Design Tokens & Accessibility**:
+  - 5-color palette: Midnight (`#22282C`), Ocean (`#929FA7`), Earth (`#E9E7E1`), Dust (`#E0E6EA`), and Snow (`#FFFFFF`).
+  - Dual-font typography stack: Inter for English and Noto Sans Devanagari for Hindi.
+  - Accessible keyboard focus rings (`:focus-visible`), skip-to-content landmark, semantic heading hierarchy, and responsive fluid layout across 375px, 768px, 1024px, 1440px, and 1920px.
+  - Mobile touch targets meet or exceed 44px.
 
 ---
 
@@ -36,43 +34,53 @@ This package contains the React, Vite, and TypeScript frontend client. Phase 1 e
 frontend/
 ├── public/
 │   └── images/
-│       ├── logo.png                # Brand logo emblem
-│       └── hero-consultation.png   # Clinical consultation hero image
+│       ├── logo.png                    # Brand logo emblem
+│       └── hero-consultation.png       # Clinical consultation hero photograph
 ├── src/
-│   ├── assets/                     # Reserved for bundled assets
-│   ├── components/                 # Reusable UI primitives
+│   ├── assets/                         # Reserved for internal bundled assets
+│   ├── components/                     # Reusable UI primitives
 │   │   ├── Button.tsx
-│   │   ├── Button.css
+│   │   ├── Button.css                  # Shared button styles & hover states
 │   │   ├── Container.tsx
-│   │   ├── Container.css
-│   │   ├── FormField.tsx
+│   │   ├── Container.css               # Shared container component
+│   │   ├── FormField.tsx               # Accessible form input with error handling
 │   │   └── FormField.css
-│   ├── pages/                      # Application route views
-│   │   ├── HomePage.tsx            # Foundation preview
+│   ├── pages/                          # Application route views
+│   │   ├── HomePage.tsx                # Phase 2 full-width responsive homepage
 │   │   ├── HomePage.css
-│   │   ├── PlaceholderPage.tsx     # Route placeholders & 404
+│   │   ├── FoundationPreviewPage.tsx   # Dev foundation preview (/dev/foundation)
+│   │   ├── FoundationPreviewPage.css
+│   │   ├── PlaceholderPage.tsx         # Route placeholders & 404
 │   │   └── PlaceholderPage.css
-│   ├── styles/                     # Global styles and design tokens
-│   │   ├── tokens.css              # Colors, typography, spacing
-│   │   └── global.css              # Reset, focus-visible, language helpers
-│   ├── App.tsx                     # Route configuration
-│   └── main.tsx                    # React application entry point
-├── index.html                      # HTML shell & font imports
-├── package.json                    # Scripts and dependencies
-├── tsconfig.json                   # TypeScript configuration
-├── tsconfig.node.json              # Vite TypeScript configuration
-├── vite.config.ts                  # Vite build configuration
-├── .gitignore                      # Ignored build & environment files
-└── README.md                       # Project documentation
+│   ├── styles/                         # Global styles and design tokens
+│   │   ├── tokens.css                  # Colors, typography, spacing, radii
+│   │   └── global.css                  # Reset, focus-visible, language helpers
+│   ├── App.tsx                         # Route configuration
+│   └── main.tsx                        # React application entry point
+├── index.html                          # HTML shell & font imports
+├── package.json                        # Scripts and dependencies
+├── tsconfig.json                       # TypeScript configuration
+├── tsconfig.node.json                  # Vite TypeScript configuration
+├── vite.config.ts                      # Vite build configuration
+├── .gitignore                          # Ignored build & environment files
+└── README.md                           # Project documentation
 ```
 
 ---
 
-## Asset Locations
+## Application Routes
 
-Static image assets are stored in `public/images/` and referenced from the root:
-- Logo: `/images/logo.png`
-- Hero Consultation: `/images/hero-consultation.png`
+| Path | Screen | Description |
+| :--- | :--- | :--- |
+| `/` | **Homepage** | Phase 2 full-width responsive healthcare homepage |
+| `/dev/foundation` | **Foundation Preview** | Development design system specimens and route links |
+| `/consultation/new` | **Doctor Setup** | Doctor session creation placeholder |
+| `/join` | **Patient Join** | Patient invitation link / consultation code entry placeholder |
+| `/join/:token` | **Audio Check** | Patient microphone / speaker check placeholder |
+| `/doctor/:sessionId` | **Doctor Screen** | Live English interpretation screen placeholder |
+| `/patient/:sessionId` | **Patient Screen** | Live Hindi interpretation screen placeholder |
+| `/record/:sessionId` | **Session Record** | Post-consultation bilingual record placeholder |
+| `*` | **Not Found (404)** | Accessible fallback page |
 
 ---
 
@@ -90,19 +98,18 @@ npm run dev
 ```
 
 ### 3. Type Checking
-Runs TypeScript validation without emitting files:
+Validates both application code and Vite configuration:
 ```bash
 npm run typecheck
 ```
 
 ### 4. Production Build
-Validates types and bundles the production app into `dist/`:
+Typechecks and compiles production bundle into `dist/`:
 ```bash
 npm run build
 ```
 
 ### 5. Preview Production Build
-Previews the production build locally:
 ```bash
 npm run preview
 ```

@@ -38,8 +38,8 @@ export const FormField: React.FC<FormFieldProps> = ({
   const finalDescribedBy =
     activeDescribedBy.length > 0 ? activeDescribedBy.join(' ') : undefined;
 
-  const isInvalid =
-    error !== undefined ? Boolean(error) : Boolean(userAriaInvalid);
+  // Force aria-invalid to true when an error is present; otherwise preserve caller's valid value
+  const finalAriaInvalid = error ? true : userAriaInvalid;
 
   return (
     <div className={`sahayak-form-field ${containerClassName}`.trim()}>
@@ -55,7 +55,7 @@ export const FormField: React.FC<FormFieldProps> = ({
         {...restInputProps}
         id={inputId}
         required={required}
-        aria-invalid={isInvalid}
+        aria-invalid={finalAriaInvalid}
         aria-describedby={finalDescribedBy}
         className={`sahayak-form-field__input ${className}`.trim()}
       />

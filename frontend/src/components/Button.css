@@ -23,14 +23,21 @@
   border-color: var(--color-midnight);
 }
 
+.sahayak-button--primary:visited {
+  color: var(--color-snow);
+}
+
 .sahayak-button--primary:hover:not(:disabled) {
   background-color: var(--color-midnight-hover);
   border-color: var(--color-midnight-hover);
+  color: var(--color-snow);
+  text-decoration: none;
 }
 
 .sahayak-button--primary:active:not(:disabled) {
   background-color: #0E1214;
   border-color: #0E1214;
+  color: var(--color-snow);
 }
 
 /* Secondary Variant: Clean surface with Ocean border and Midnight text */
@@ -40,13 +47,20 @@
   border-color: var(--color-ocean);
 }
 
+.sahayak-button--secondary:visited {
+  color: var(--color-midnight);
+}
+
 .sahayak-button--secondary:hover:not(:disabled) {
   background-color: var(--color-dust);
   border-color: var(--color-midnight);
+  color: var(--color-midnight);
+  text-decoration: none;
 }
 
 .sahayak-button--secondary:active:not(:disabled) {
   background-color: var(--color-earth);
+  color: var(--color-midnight);
 }
 
 /* Keyboard Focus */
