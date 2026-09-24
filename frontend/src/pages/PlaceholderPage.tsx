@@ -42,7 +42,7 @@ export const PlaceholderPage: React.FC<PlaceholderPageProps> = ({
           )}
           <p className="sahayak-placeholder__description">{description}</p>
           <div className="sahayak-placeholder__footer">
-            <Link to="/">Return to Foundation Preview</Link>
+            <Link to="/">Return to Home</Link>
           </div>
         </div>
       </Container>

@@ -63,7 +63,9 @@
   --font-size-lg: 1.125rem;   /* 18px */
   --font-size-xl: 1.25rem;    /* 20px - H3 / Section title */
   --font-size-2xl: 1.5rem;    /* 24px - H2 / Page sub-heading */
-  --font-size-3xl: 1.75rem;   /* 28px - H1 / Restrained main heading */
+  --font-size-3xl: 1.75rem;   /* 28px - Section heading */
+  --font-size-4xl: 2rem;      /* 32px - Hero mobile heading */
+  --font-size-5xl: 2.5rem;    /* 40px - Hero desktop heading */
 
   --font-weight-regular: 400;
   --font-weight-medium: 500;
@@ -93,6 +95,7 @@
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
+  --radius-2xl: 24px;
   --radius-full: 9999px;
 
   /* Shadows (soft and restrained) */
