@@ -1,0 +1,115 @@
+/* ==========================================================================
+   Sahayak Design System - Tokens
+   Palette:
+     Midnight: #22282C (Primary text, primary buttons, deep surfaces)
+     Ocean:    #929FA7 (Accents, supporting surfaces, secondary borders)
+     Earth:    #E9E7E1 (Warm neutral surfaces, subtle containers)
+     Dust:     #E0E6EA (Field borders, dividers, subtle card backings)
+     Snow:     #FFFFFF (Card backgrounds, input surfaces, button text on dark)
+
+   Accessibility / Contrast Notes:
+     - Midnight on Snow (#22282C on #FFFFFF): 14.8:1 (Passes WCAG AAA)
+     - Snow on Midnight (#FFFFFF on #22282C): 14.8:1 (Passes WCAG AAA)
+     - Midnight on Dust (#22282C on #E0E6EA): 11.5:1 (Passes WCAG AAA)
+     - Midnight on Earth (#22282C on #E9E7E1): 11.9:1 (Passes WCAG AAA)
+     - Ocean on Midnight (#929FA7 on #22282C): 5.5:1 (Passes WCAG AA)
+     - Ocean on Snow (#929FA7 on #FFFFFF): 2.7:1 (Fails body text; used for borders,
+       supporting surfaces, indicators, and non-text visual accents)
+   ========================================================================== */
+
+:root {
+  /* Brand Color Palette */
+  --color-midnight: #22282C;
+  --color-midnight-hover: #171B1E;
+  --color-ocean: #929FA7;
+  --color-ocean-subtle: #F0F4F6;
+  --color-earth: #E9E7E1;
+  --color-dust: #E0E6EA;
+  --color-snow: #FFFFFF;
+
+  /* Semantic UI Application */
+  --color-text-primary: var(--color-midnight);
+  --color-text-secondary: #4F5A61; /* High-contrast supporting text (7.0:1 on Snow) */
+  --color-text-muted: #5E6B73;     /* Muted metadata (5.4:1 on Snow, passes AA) */
+  --color-text-on-dark: var(--color-snow);
+
+  --color-surface-base: #F8F9FA;
+  --color-surface-card: var(--color-snow);
+  --color-surface-muted: var(--color-dust);
+  --color-surface-warm: var(--color-earth);
+
+  --color-border-subtle: var(--color-dust);
+  --color-border-default: var(--color-ocean);
+  --color-border-strong: var(--color-midnight);
+
+  /* Semantic State Colors */
+  --color-error: #B00020;          /* 6.3:1 contrast on Snow/Earth */
+  --color-error-bg: #FDF2F2;
+  --color-error-border: #E5A3A8;
+  --color-success: #1E6B3A;
+  --color-success-bg: #F0F9F3;
+  --color-warning: #8D5300;
+  --color-warning-bg: #FEF8ED;
+
+  /* Typography */
+  --font-english: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-hindi: 'Noto Sans Devanagari', 'Mangal', 'Devanagari MT', sans-serif;
+  --font-family-sans: var(--font-english);
+
+  /* Font Scale - Restrained healthcare typography (no oversized headings) */
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px - Base body */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px - H3 / Section title */
+  --font-size-2xl: 1.5rem;    /* 24px - H2 / Page sub-heading */
+  --font-size-3xl: 1.75rem;   /* 28px - H1 / Restrained main heading */
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+
+  /* Spacing Scale (4px increments) */
+  --space-0: 0;
+  --space-1: 0.25rem;  /* 4px */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;  /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;  /* 40px */
+  --space-12: 3rem;    /* 48px */
+  --space-16: 4rem;    /* 64px */
+
+  /* Border Radii */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Shadows (soft and restrained) */
+  --shadow-subtle: 0 1px 3px rgba(34, 40, 44, 0.05);
+  --shadow-card: 0 2px 6px rgba(34, 40, 44, 0.07);
+  --shadow-elevated: 0 4px 14px rgba(34, 40, 44, 0.09);
+
+  /* Layout & Widths */
+  --max-content-width: 1120px;
+  --container-padding-mobile: 1rem;   /* 16px */
+  --container-padding-tablet: 1.5rem; /* 24px */
+  --container-padding-desktop: 2rem;  /* 32px */
+
+  /* Accessibility & Focus */
+  --focus-ring-color: var(--color-midnight);
+  --focus-ring-offset: 2px;
+  --focus-ring: 2px solid var(--focus-ring-color);
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}

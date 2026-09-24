@@ -1,0 +1,64 @@
+.sahayak-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-english);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+  white-space: nowrap;
+}
+
+/* Primary Variant: Midnight background with Snow text */
+.sahayak-button--primary {
+  background-color: var(--color-midnight);
+  color: var(--color-snow);
+  border-color: var(--color-midnight);
+}
+
+.sahayak-button--primary:hover:not(:disabled) {
+  background-color: var(--color-midnight-hover);
+  border-color: var(--color-midnight-hover);
+}
+
+.sahayak-button--primary:active:not(:disabled) {
+  background-color: #0E1214;
+  border-color: #0E1214;
+}
+
+/* Secondary Variant: Clean surface with Ocean border and Midnight text */
+.sahayak-button--secondary {
+  background-color: var(--color-snow);
+  color: var(--color-midnight);
+  border-color: var(--color-ocean);
+}
+
+.sahayak-button--secondary:hover:not(:disabled) {
+  background-color: var(--color-dust);
+  border-color: var(--color-midnight);
+}
+
+.sahayak-button--secondary:active:not(:disabled) {
+  background-color: var(--color-earth);
+}
+
+/* Keyboard Focus */
+.sahayak-button:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Disabled State */
+.sahayak-button:disabled,
+.sahayak-button[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
