@@ -1,0 +1,201 @@
+/* ==========================================================================
+   DoctorPreparationPage Styles (Healthcare Consultation Design)
+   ========================================================================== */
+
+.sahayak-prep-page {
+  min-height: 100vh;
+  background-color: var(--color-surface-base);
+  display: flex;
+  flex-direction: column;
+}
+
+.sahayak-prep-main {
+  flex: 1;
+  padding: var(--space-6) 0 var(--space-12) 0;
+}
+
+.sahayak-prep-header {
+  margin-bottom: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sahayak-prep-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: var(--line-height-tight);
+}
+
+.sahayak-prep-desc {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin: 0;
+  max-width: 640px;
+  line-height: var(--line-height-normal);
+}
+
+/* Explicit Language Line */
+.sahayak-prep-languages {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.sahayak-prep-lang-sep {
+  color: var(--color-text-muted);
+}
+
+.sahayak-prep-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.sahayak-prep-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .sahayak-prep-cards-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-6);
+  }
+}
+
+/* Tip / Recommendation strip */
+.sahayak-prep-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.sahayak-prep-tip__icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-midnight);
+}
+
+.sahayak-prep-tip__text {
+  margin: 0;
+  line-height: var(--line-height-normal);
+}
+
+/* Session Form Card */
+.sahayak-session-create-card {
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sahayak-session-create-card__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.sahayak-session-create-card__desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* Integration Notice Banner */
+.sahayak-integration-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface-base);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.sahayak-integration-notice__icon {
+  color: var(--color-midnight);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.sahayak-integration-notice__text p {
+  margin: 0;
+  line-height: var(--line-height-normal);
+}
+
+.sahayak-session-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-start;
+  margin-top: var(--space-2);
+}
+
+@media (min-width: 640px) {
+  .sahayak-session-actions {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.sahayak-session-submit-btn {
+  min-height: 48px;
+  padding-left: var(--space-5);
+  padding-right: var(--space-5);
+}
+
+.sahayak-dev-fixture-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-sm);
+  color: var(--color-midnight);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: var(--font-weight-medium);
+}
+
+.sahayak-dev-fixture-link:hover {
+  color: var(--color-midnight-hover);
+}
+
+/* Privacy Strip */
+.sahayak-privacy-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+.sahayak-privacy-strip svg {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}

@@ -1,0 +1,189 @@
+/* ==========================================================================
+   SpeakerCheck Component Styles (Neutral Healthcare Palette)
+   ========================================================================== */
+
+.sahayak-speaker-card {
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-subtle);
+  transition: border-color var(--transition-normal);
+}
+
+.sahayak-speaker-card.sahayak-lang-hi {
+  font-family: var(--font-hindi);
+}
+
+.sahayak-speaker-card--completed {
+  border-color: var(--color-ocean);
+}
+
+.sahayak-speaker-card__header {
+  margin-bottom: var(--space-4);
+}
+
+.sahayak-speaker-card__title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.sahayak-speaker-card__icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-dust);
+  color: var(--color-midnight);
+  flex-shrink: 0;
+}
+
+.sahayak-speaker-card__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-1) 0;
+  line-height: var(--line-height-tight);
+}
+
+.sahayak-speaker-card__subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: var(--line-height-normal);
+}
+
+.sahayak-speaker-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Status Banner */
+.sahayak-speaker-status {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+  background-color: var(--color-surface-base);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-primary);
+}
+
+.sahayak-speaker-status-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.sahayak-speaker-status-icon--idle {
+  color: var(--color-text-muted);
+}
+
+.sahayak-speaker-status-icon--active {
+  color: var(--color-midnight);
+  animation: pulse-speaker 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-speaker {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.1); }
+}
+
+/* Neutral Checkmark Icon */
+.sahayak-speaker-status-icon--neutral-done {
+  color: var(--color-midnight);
+}
+
+.sahayak-speaker-status-icon--error {
+  color: var(--color-error);
+}
+
+/* Completed: subtle neutral background, no green tint */
+.sahayak-speaker-status--passed {
+  background-color: var(--color-dust);
+  border-color: var(--color-ocean);
+  color: var(--color-midnight);
+}
+
+.sahayak-speaker-status--failed,
+.sahayak-speaker-status--error {
+  background-color: var(--color-error-bg);
+  border-color: var(--color-error-border);
+  color: var(--color-error);
+}
+
+.sahayak-speaker-status__text {
+  font-weight: var(--font-weight-medium);
+}
+
+/* Troubleshooting Guidance */
+.sahayak-speaker-troubleshoot {
+  font-size: var(--font-size-xs);
+  color: var(--color-error);
+  background-color: var(--color-error-bg);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-error);
+  margin: 0;
+  line-height: var(--line-height-normal);
+}
+
+/* Confirmation Question Box */
+.sahayak-speaker-confirm-box {
+  background-color: var(--color-surface-base);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sahayak-speaker-confirm-question {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.sahayak-speaker-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.sahayak-speaker-confirm-btn {
+  min-height: 44px;
+  white-space: normal;
+  line-height: var(--line-height-normal);
+}
+
+/* Mutual Exclusion Busy Notice */
+.sahayak-speaker-busy-notice {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  background-color: var(--color-surface-base);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-ocean);
+  margin: 0;
+}
+
+/* Actions */
+.sahayak-speaker-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.sahayak-speaker-action-btn {
+  min-height: 44px;
+  white-space: normal;
+  line-height: var(--line-height-normal);
+}

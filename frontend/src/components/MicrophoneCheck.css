@@ -1,0 +1,216 @@
+/* ==========================================================================
+   MicrophoneCheck Component Styles (Neutral Healthcare Palette)
+   ========================================================================== */
+
+.sahayak-mic-card {
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-subtle);
+  transition: border-color var(--transition-normal);
+}
+
+.sahayak-mic-card.sahayak-lang-hi {
+  font-family: var(--font-hindi);
+}
+
+.sahayak-mic-card--completed {
+  border-color: var(--color-ocean);
+}
+
+.sahayak-mic-card__header {
+  margin-bottom: var(--space-4);
+}
+
+.sahayak-mic-card__title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.sahayak-mic-card__icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-dust);
+  color: var(--color-midnight);
+  flex-shrink: 0;
+}
+
+.sahayak-mic-card__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-1) 0;
+  line-height: var(--line-height-tight);
+}
+
+.sahayak-mic-card__subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: var(--line-height-normal);
+}
+
+.sahayak-mic-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Status Banner - Neutral Completion */
+.sahayak-mic-status {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+  background-color: var(--color-surface-base);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-primary);
+}
+
+.sahayak-mic-status-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.sahayak-mic-status-icon--idle {
+  color: var(--color-text-muted);
+}
+
+.sahayak-mic-status-icon--active {
+  color: var(--color-midnight);
+  animation: pulse-mic 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse-mic {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.1); }
+}
+
+/* Neutral Checkmark Icon */
+.sahayak-mic-status-icon--neutral-done {
+  color: var(--color-midnight);
+}
+
+.sahayak-mic-status-icon--error {
+  color: var(--color-error);
+}
+
+/* Completed state: Subtle neutral background (Dust/Snow), no green tint */
+.sahayak-mic-status--sound_detected {
+  background-color: var(--color-dust);
+  border-color: var(--color-ocean);
+  color: var(--color-midnight);
+}
+
+.sahayak-mic-status--denied,
+.sahayak-mic-status--no_device,
+.sahayak-mic-status--error,
+.sahayak-mic-status--unsupported,
+.sahayak-mic-status--no_sound_detected {
+  background-color: var(--color-error-bg);
+  border-color: var(--color-error-border);
+  color: var(--color-error);
+}
+
+.sahayak-mic-status__text {
+  font-weight: var(--font-weight-medium);
+}
+
+/* Input Level Meter */
+.sahayak-mic-meter-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sahayak-mic-meter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+.sahayak-mic-meter-track {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  background-color: var(--color-dust);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  border: 1px solid rgba(34, 40, 44, 0.08);
+}
+
+/* Meter Fill: Midnight neutral, not green */
+.sahayak-mic-meter-fill {
+  height: 100%;
+  background-color: var(--color-midnight);
+  border-radius: var(--radius-full);
+  transition: width 80ms ease-out;
+}
+
+.sahayak-mic-meter-threshold {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--color-ocean);
+  z-index: 2;
+}
+
+/* Retained Reading Display */
+.sahayak-mic-retained-reading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.sahayak-mic-retained-label {
+  font-weight: var(--font-weight-medium);
+}
+
+.sahayak-mic-retained-val {
+  font-family: monospace;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-midnight);
+  background-color: var(--color-surface-base);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-subtle);
+}
+
+/* Mutual Exclusion Busy Notice */
+.sahayak-mic-busy-notice {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  background-color: var(--color-surface-base);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-ocean);
+  margin: 0;
+}
+
+/* Actions */
+.sahayak-mic-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.sahayak-mic-action-btn {
+  min-height: 44px;
+  white-space: normal;
+  line-height: var(--line-height-normal);
+}

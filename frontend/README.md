@@ -1,115 +1,116 @@
 # Sahayak Frontend
 
-Sahayak is a browser-based voice interpretation system connecting an English-speaking doctor and a Hindi-speaking patient.
+Sahayak is a browser-based voice interpretation system connecting an English-speaking doctor and a Hindi-speaking patient on separate devices.
 
 This package contains the React, Vite, and TypeScript frontend client.
 
 ---
 
-## What Phase 2 Includes
+## What Phase 3 Includes
 
-- **Full-Width Responsive Homepage (`/`)**:
-  - Full-width layout spanning the available viewport width without an artificial boxed frame or floating card container.
-  - Compact, accessible header navigation (~72–80px tall on desktop) aligned to inner content gutters with a skip-to-main-content link (`#main-content`).
-  - Integrated photographic hero surface with the clinical consultation photograph (`/images/hero-consultation.png`) positioned as the background layer behind the content.
-  - Hero copy placed on the left over natural negative space with a restrained, neutral white readability scrim, leaving the doctor and the patient on the laptop screen unobscured across all breakpoints.
-  - Quiet text label for "English ↔ Hindi voice interpretation" (without rounded badge borders).
-  - Restrained 3-item hero information strip in normal document flow (Doctor language: English, Patient language: हिन्दी, Connection: Private invitation link) clear of faces and the laptop screen.
-  - Simplified, open feature columns ("Keep the conversation clear") without individual card borders, boxes, or hover treatments.
-  - Semantic ordered-list "How it works" section with simple numbered steps (1, 2, 3) that stack naturally on mobile.
-  - Full-width footer retaining the project tagline and hackathon prototype disclaimer.
-- **Relocated Foundation Preview (`/dev/foundation`)**:
-  - The Phase 1 design system preview, component specimens, and route testing links remain available at `/dev/foundation` for developer testing.
-- **Design Tokens & Accessibility**:
-  - 5-color palette: Midnight (`#22282C`), Ocean (`#929FA7`), Earth (`#E9E7E1`), Dust (`#E0E6EA`), and Snow (`#FFFFFF`).
-  - Dual-font typography stack: Inter for English and Noto Sans Devanagari for Hindi.
-  - Accessible keyboard focus rings (`:focus-visible`), skip-to-content landmark, semantic heading hierarchy, and responsive fluid layout across 375px, 768px, 1024px, 1440px, and 1920px.
-  - Mobile touch targets meet or exceed 44px.
+Phase 3 builds the setup, invitation entry, and local browser audio verification workflows for doctors and patients:
+
+1. **Doctor Preparation Screen (`/consultation/new`)**:
+   - Audio preflight interface in English for the doctor station.
+   - Shows fixed consultation languages: Doctor English, Patient Hindi (हिन्दी).
+   - Real browser microphone check with volume metering and detection threshold.
+   - Gentle, synthesized two-tone speaker chime with dedicated cancellation action and explicit user confirmation (*"Did you hear the sound?"*).
+   - Live preparation checklist summarizing audio device status.
+   - Coordination/mutual exclusion between microphone and speaker checks to prevent feedback interference.
+   - Quiet-space and headphone recommendation.
+   - Session creation disabled with clear notice: *"Session creation is not available yet. You can check your audio now."*
+
+2. **Patient Invitation Entry Screen (`/join`)**:
+   - Mobile-first invitation URL entry in Hindi (हिन्दी).
+   - Strict client-side URL validation via reusable `parseInvitationInput` utility accepting only:
+     - A full HTTP(S) invitation URL matching the current app origin.
+     - A relative `/join/:token` path (with optional single trailing slash).
+   - Rejects foreign origins, credentials, malformed paths, double slashes, unsupported protocols, and empty input.
+   - Clear Hindi validation messages (`"आमंत्रण लिंक दर्ज करें।"` and `"यह लिंक सही नहीं लग रहा है। डॉक्टर से मिला पूरा लिंक पेस्ट करें।"`).
+   - Client navigation to the corresponding `/join/:token` preparation screen without network requests.
+
+3. **Patient Preparation Screen (`/join/:token`)**:
+   - Token-aware preflight interface in Hindi for the patient on their phone or tablet.
+   - Shows fixed consultation languages: Patient Hindi (हिन्दी), Doctor English.
+   - Explicit unverified state notice: *"आमंत्रण की पुष्टि अभी उपलब्ध नहीं है। लाइव सत्र में प्रवेश बैकएंड सेवा जुड़ने के बाद चालू होगा।"*
+   - Dedicated join card notice: *"अभी परामर्श में शामिल होना उपलब्ध नहीं है। आप अपना ऑडियो जाँच सकते हैं।"*
+   - Local browser microphone and speaker checks tailored with Hindi instructions and typography.
+   - Preparation checklist with live check results.
+   - Primary "सत्र में शामिल हों" (Join session) action disabled until backend integration.
+
+4. **Hardware Audio Check Architecture**:
+   - **Microphone (`useMicrophoneCheck`)**:
+     - Uses Web Audio API `AudioContext` and `AnalyserNode` connected exclusively to an audio input stream (`video: false`).
+     - Real-time time-domain level calculation with dynamic threshold detection (12%).
+     - **Strict Safety Guarantee**: The input stream is **never** connected to `AudioContext.destination` (speakers), preventing any feedback loop or echo.
+     - **Strict Privacy Guarantee**: No audio is recorded, stored, or sent across the network. All processing is transient and local.
+     - **Dedicated Resource Ownership**: Each operation owns its dedicated stream tracks, `AudioContext`, nodes, timers, and animation frames. Stale operations release only their own resources without touching newer operations.
+     - **Context Closure on Catch**: Catch handler ensures any `AudioContext` opened during failed attempts is cleanly closed.
+     - **Retained Readings Reset**: Calling `startCheck()` immediately resets retained readings.
+   - **Speaker (`useSpeakerCheck`)**:
+     - Generates a local, gentle two-tone sinusoidal chime (C5 523Hz → E5 659Hz) using Web Audio API `OscillatorNode` with safe gain ramping (maximum gain 0.14).
+     - **Dedicated Resource Ownership & Cancellation**: Provides `stopCheck` cancellation action while playback or context resume is pending so users are never trapped.
+     - Requires explicit user verification (*"Did you hear the sound?"* / *"क्या आपको आवाज़ सुनाई दी?"*).
+
+5. **Development Route Isolation & Fixtures (`/dev/setup`)**:
+   - Both `/dev/setup` and `/dev/foundation` are lazy-loaded via `React.lazy` and gated by `import.meta.env.DEV`, ensuring they are strictly excluded from the production bundle.
+   - **Doctor Invitation Result**: Clean, unbadged card with plain supporting sentence for preview fixtures (*"Example invitation. This link cannot join a session."*), and robust clipboard copy with `try/finally` focus restoration and textarea removal.
+   - **Patient Invitation States**: Interactive switcher previewing all patient backend states (`unverified`, `verifying`, `valid`, `invalid`, `expired`, `session_full`, `session_ended`, `network_error`) in both Hindi and English.
+   - **Simulated Hardware States**: Switcher previewing all microphone permission and speaker hardware error states.
+
+6. **Neutral Completion Styling & Typography**:
+   - Neutral palette using Midnight (`#22282C`) for text, icons, and meter fill; Dust (`#E0E6EA`) for completed backgrounds; Ocean (`#929FA7`) for restrained borders; Snow (`#FFFFFF`) for card surfaces.
+   - Status communicated through checkmark icons and explicit wording, not color alone.
+   - Controls (buttons, inputs) in Hindi containers inherit `Noto Sans Devanagari` (`var(--font-hindi)`).
 
 ---
 
-## Folder Structure
+## Backend Teammate Integration Needs
 
-```
-frontend/
-├── public/
-│   └── images/
-│       ├── logo.png                    # Brand logo emblem
-│       └── hero-consultation.png       # Clinical consultation hero photograph
-├── src/
-│   ├── assets/                         # Reserved for internal bundled assets
-│   ├── components/                     # Reusable UI primitives
-│   │   ├── Button.tsx
-│   │   ├── Button.css                  # Shared button styles & hover states
-│   │   ├── Container.tsx
-│   │   ├── Container.css               # Shared container component
-│   │   ├── FormField.tsx               # Accessible form input with error handling
-│   │   └── FormField.css
-│   ├── pages/                          # Application route views
-│   │   ├── HomePage.tsx                # Phase 2 full-width responsive homepage
-│   │   ├── HomePage.css
-│   │   ├── FoundationPreviewPage.tsx   # Dev foundation preview (/dev/foundation)
-│   │   ├── FoundationPreviewPage.css
-│   │   ├── PlaceholderPage.tsx         # Route placeholders & 404
-│   │   └── PlaceholderPage.css
-│   ├── styles/                         # Global styles and design tokens
-│   │   ├── tokens.css                  # Colors, typography, spacing, radii
-│   │   └── global.css                  # Reset, focus-visible, language helpers
-│   ├── App.tsx                         # Route configuration
-│   └── main.tsx                        # React application entry point
-├── index.html                          # HTML shell & font imports
-├── package.json                        # Scripts and dependencies
-├── tsconfig.json                       # TypeScript configuration
-├── tsconfig.node.json                  # Vite TypeScript configuration
-├── vite.config.ts                      # Vite build configuration
-├── .gitignore                          # Ignored build & environment files
-└── README.md                           # Project documentation
-```
+For Phase 4 consultation connectivity, the frontend anticipates the following integration capabilities:
+
+- **Session Provisioning**: A mechanism for doctors on `/consultation/new` to initialize a consultation session and receive a unique patient invitation link.
+- **Invitation Validation**: A mechanism for patients on `/join/:token` to verify token validity, session status (active, full, expired, or ended), and participant presence.
+- **Bi-directional Audio Channel**: Real-time streaming connection (e.g. WebRTC or WebSocket) routing English audio from doctor to translation service and Hindi audio to patient (and vice-versa).
+- **Session Lifecycle Events**: Notification of participant join/disconnect and session termination.
 
 ---
 
 ## Application Routes
 
-| Path | Screen | Description |
-| :--- | :--- | :--- |
-| `/` | **Homepage** | Phase 2 full-width responsive healthcare homepage |
-| `/dev/foundation` | **Foundation Preview** | Development design system specimens and route links |
-| `/consultation/new` | **Doctor Setup** | Doctor session creation placeholder |
-| `/join` | **Patient Join** | Patient invitation link / consultation code entry placeholder |
-| `/join/:token` | **Audio Check** | Patient microphone / speaker check placeholder |
-| `/doctor/:sessionId` | **Doctor Screen** | Live English interpretation screen placeholder |
-| `/patient/:sessionId` | **Patient Screen** | Live Hindi interpretation screen placeholder |
-| `/record/:sessionId` | **Session Record** | Post-consultation bilingual record placeholder |
-| `*` | **Not Found (404)** | Accessible fallback page |
+| Path | Screen | Status | Description |
+| :--- | :--- | :--- | :--- |
+| `/` | **Homepage** | Complete | Full-width responsive healthcare homepage |
+| `/consultation/new` | **Doctor Preparation** | Phase 3 Complete | English audio preflight, checklist & session setup |
+| `/join` | **Patient Join Entry** | Phase 3 Complete | Hindi invitation link entry with strict origin/path validation |
+| `/join/:token` | **Patient Preparation** | Phase 3 Complete | Hindi audio preflight, unverified status notice & checklist |
+| `/dev/setup` | **Setup Fixtures** | Dev-Only (Lazy) | Interactive fixture preview for doctor invitation & patient states |
+| `/dev/foundation` | **Foundation Preview** | Dev-Only (Lazy) | Design system specimen showcase |
+| `/doctor/:sessionId` | **Doctor Screen** | Placeholder | Live English interpretation screen (Phase 4) |
+| `/patient/:sessionId` | **Patient Screen** | Placeholder | Live Hindi interpretation screen (Phase 4) |
+| `/record/:sessionId` | **Session Record** | Placeholder | Post-consultation bilingual summary (Phase 4) |
+| `*` | **Not Found (404)** | Complete | Accessible fallback page |
 
 ---
 
-## Scripts & Local Development
+## Local Development & Scripts
 
-### 1. Installation
 ```bash
+# Install dependencies
 npm install
-```
 
-### 2. Development Server
-Starts the local development server at `http://localhost:5173`:
-```bash
+# Start local development server (http://localhost:5173)
 npm run dev
-```
 
-### 3. Type Checking
-Validates both application code and Vite configuration:
-```bash
+# Run automated regression test suite
+npm test
+
+# Run TypeScript typechecks
 npm run typecheck
-```
 
-### 4. Production Build
-Typechecks and compiles production bundle into `dist/`:
-```bash
+# Build for production (outputs to dist/)
 npm run build
-```
 
-### 5. Preview Production Build
-```bash
+# Preview production build locally
 npm run preview
 ```

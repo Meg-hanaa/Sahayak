@@ -1,0 +1,190 @@
+/* ==========================================================================
+   SetupDevPreviewPage Styles
+   ========================================================================== */
+
+.sahayak-dev-page {
+  min-height: 100vh;
+  background-color: var(--color-surface-base);
+  display: flex;
+  flex-direction: column;
+}
+
+.sahayak-dev-main {
+  flex: 1;
+  padding: var(--space-6) 0 var(--space-12) 0;
+}
+
+.sahayak-dev-header {
+  margin-bottom: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+
+.sahayak-dev-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.sahayak-dev-subtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin: 0;
+  max-width: 720px;
+  line-height: var(--line-height-normal);
+}
+
+.sahayak-dev-nav-links {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: var(--space-2);
+}
+
+.sahayak-dev-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-midnight);
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.sahayak-dev-link-btn:hover {
+  background-color: var(--color-ocean-subtle);
+  border-color: var(--color-ocean);
+}
+
+.sahayak-dev-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.sahayak-dev-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-bottom: var(--space-8);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.sahayak-dev-section:last-child {
+  border-bottom: none;
+}
+
+.sahayak-dev-section__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sahayak-dev-section__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.sahayak-dev-section__desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.sahayak-dev-section__desc code {
+  font-family: monospace;
+  background-color: var(--color-dust);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.sahayak-dev-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background-color: var(--color-surface-card);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.sahayak-dev-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+@media (min-width: 640px) {
+  .sahayak-dev-control-group {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.sahayak-dev-control-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  min-width: 130px;
+}
+
+.sahayak-dev-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.sahayak-dev-pill {
+  font-family: monospace;
+  font-size: var(--font-size-xs);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-subtle);
+  background-color: var(--color-surface-base);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sahayak-dev-pill:hover {
+  border-color: var(--color-ocean);
+  color: var(--color-midnight);
+}
+
+.sahayak-dev-pill--active {
+  background-color: var(--color-midnight);
+  color: var(--color-snow);
+  border-color: var(--color-midnight);
+}
+
+.sahayak-dev-preview-box {
+  margin-top: var(--space-2);
+}
+
+.sahayak-dev-audio-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sahayak-dev-audio-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .sahayak-dev-audio-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+}

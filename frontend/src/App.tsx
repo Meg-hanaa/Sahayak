@@ -1,25 +1,67 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { HomePage } from './pages/HomePage';
-import { FoundationPreviewPage } from './pages/FoundationPreviewPage';
+import { DoctorPreparationPage } from './pages/DoctorPreparationPage';
+import { PatientJoinEntryPage } from './pages/PatientJoinEntryPage';
+import { PatientPreparationPage } from './pages/PatientPreparationPage';
 import {
-  DoctorSetupPage,
-  PatientJoinPage,
-  PatientAudioCheckPage,
   DoctorConsultationPage,
   PatientConsultationPage,
   ConsultationRecordPage,
   NotFoundPage,
 } from './pages/PlaceholderPage';
 
+// Lazy-load development-only preview pages so they are never eagerly imported in production
+const FoundationPreviewPage = import.meta.env.DEV
+  ? React.lazy(() =>
+      import('./pages/FoundationPreviewPage').then((m) => ({
+        default: m.FoundationPreviewPage,
+      }))
+    )
+  : null;
+
+const SetupDevPreviewPage = import.meta.env.DEV
+  ? React.lazy(() =>
+      import('./pages/SetupDevPreviewPage').then((m) => ({
+        default: m.SetupDevPreviewPage,
+      }))
+    )
+  : null;
+
 export const App: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/dev/foundation" element={<FoundationPreviewPage />} />
-      <Route path="/consultation/new" element={<DoctorSetupPage />} />
-      <Route path="/join" element={<PatientJoinPage />} />
-      <Route path="/join/:token" element={<PatientAudioCheckPage />} />
+
+      {/* Phase 3 Preparation & Join Routes */}
+      <Route path="/consultation/new" element={<DoctorPreparationPage />} />
+      <Route path="/join" element={<PatientJoinEntryPage />} />
+      <Route path="/join/:token" element={<PatientPreparationPage />} />
+
+      {/* Development-only preview fixture routes (strictly excluded from production) */}
+      {import.meta.env.DEV && FoundationPreviewPage && (
+        <Route
+          path="/dev/foundation"
+          element={
+            <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading preview...</div>}>
+              <FoundationPreviewPage />
+            </Suspense>
+          }
+        />
+      )}
+
+      {import.meta.env.DEV && SetupDevPreviewPage && (
+        <Route
+          path="/dev/setup"
+          element={
+            <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading preview...</div>}>
+              <SetupDevPreviewPage />
+            </Suspense>
+          }
+        />
+      )}
+
+      {/* Future Phase Consultation Placeholders */}
       <Route path="/doctor/:sessionId" element={<DoctorConsultationPage />} />
       <Route path="/patient/:sessionId" element={<PatientConsultationPage />} />
       <Route path="/record/:sessionId" element={<ConsultationRecordPage />} />

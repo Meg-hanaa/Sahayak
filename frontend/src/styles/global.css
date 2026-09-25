@@ -84,9 +84,29 @@ a:hover {
 
 /* Language and Script Helpers */
 .lang-hi,
+.sahayak-lang-hi,
 [lang="hi"] {
   font-family: var(--font-hindi);
   line-height: 1.6;
+}
+
+/* Controls (buttons, inputs, textareas) inside Hindi contexts inherit Hindi typography */
+.lang-hi button,
+.lang-hi input,
+.lang-hi select,
+.lang-hi textarea,
+.sahayak-lang-hi button,
+.sahayak-lang-hi input,
+.sahayak-lang-hi select,
+.sahayak-lang-hi textarea,
+[lang="hi"] button,
+[lang="hi"] input,
+[lang="hi"] select,
+[lang="hi"] textarea,
+.sahayak-button[lang="hi"],
+button[lang="hi"],
+input[lang="hi"] {
+  font-family: var(--font-hindi);
 }
 
 /* Accessibility: Respect Reduced Motion */

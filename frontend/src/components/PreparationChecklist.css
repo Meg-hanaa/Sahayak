@@ -1,0 +1,115 @@
+/* ==========================================================================
+   PreparationChecklist Component Styles (Compact Neutral Design)
+   ========================================================================== */
+
+.sahayak-checklist-card {
+  background-color: var(--color-surface-base);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sahayak-checklist-card.sahayak-lang-hi {
+  font-family: var(--font-hindi);
+}
+
+.sahayak-checklist-card--completed {
+  border-color: var(--color-ocean);
+  background-color: var(--color-surface-base);
+}
+
+.sahayak-checklist-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.sahayak-checklist-card__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.sahayak-checklist-card__summary {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  background-color: var(--color-surface-card);
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.sahayak-checklist-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sahayak-checklist-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+.sahayak-checklist-item--completed {
+  background-color: var(--color-dust);
+  border-color: rgba(34, 40, 44, 0.12);
+}
+
+.sahayak-checklist-item__name {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Checklist Badges - Neutral Completion */
+.sahayak-checklist-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.sahayak-checklist-badge--completed {
+  color: var(--color-midnight);
+  background-color: var(--color-snow);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.sahayak-checklist-badge--active {
+  color: var(--color-midnight);
+  background-color: var(--color-ocean-subtle);
+}
+
+.sahayak-checklist-badge--failed {
+  color: var(--color-error);
+  background-color: var(--color-error-bg);
+}
+
+.sahayak-checklist-badge--idle {
+  color: var(--color-text-muted);
+  background-color: var(--color-dust);
+}
+
+.sahayak-checklist-card__notice {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: var(--line-height-normal);
+}

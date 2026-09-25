@@ -1,0 +1,142 @@
+/* ==========================================================================
+   InvitationResultCard Component Styles (Neutral Healthcare Palette)
+   ========================================================================== */
+
+.sahayak-invitation-card {
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sahayak-invitation-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sahayak-invitation-card__badge-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* Neutral Ready Badge (Midnight / Dust / Snow, not green) */
+.sahayak-invitation-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--color-dust);
+  color: var(--color-midnight);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.sahayak-invitation-card__fixture-note {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: var(--line-height-normal);
+}
+
+.sahayak-invitation-card__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: var(--line-height-tight);
+}
+
+.sahayak-invitation-card__subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: var(--line-height-normal);
+}
+
+.sahayak-invitation-card__code-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.sahayak-invitation-card__code-label {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.sahayak-invitation-card__code-value {
+  font-family: monospace;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+  color: var(--color-midnight);
+  background-color: var(--color-surface-base);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-subtle);
+  letter-spacing: 0.05em;
+}
+
+.sahayak-invitation-card__input-group {
+  display: flex;
+  gap: var(--space-2);
+  align-items: stretch;
+}
+
+@media (max-width: 480px) {
+  .sahayak-invitation-card__input-group {
+    flex-direction: column;
+  }
+}
+
+.sahayak-invitation-card__input {
+  flex: 1;
+  font-family: monospace;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-base);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 0.625rem 0.875rem;
+  min-width: 0;
+  cursor: text;
+}
+
+.sahayak-invitation-card__input:focus {
+  outline: none;
+  border-color: var(--color-midnight);
+  box-shadow: 0 0 0 2px var(--color-midnight);
+}
+
+.sahayak-invitation-card__copy-btn {
+  white-space: nowrap;
+  min-height: 42px;
+}
+
+.sahayak-invitation-card__copy-error {
+  font-size: var(--font-size-xs);
+  color: var(--color-error);
+  margin: 0;
+}
+
+.sahayak-invitation-card__help {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background-color: var(--color-surface-base);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+}

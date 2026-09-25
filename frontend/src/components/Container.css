@@ -14,9 +14,19 @@
   }
 }
 
-@media (min-width: 1200px) {
-  .sahayak-container {
-    padding-left: var(--container-padding-desktop);
-    padding-right: var(--container-padding-desktop);
-  }
+.sahayak-container--sm {
+  max-width: 560px;
 }
+
+.sahayak-container--md {
+  max-width: 860px;
+}
+
+.sahayak-container--lg {
+  max-width: var(--max-content-width);
+}
+
+.sahayak-container--full {
+  max-width: 100%;
+}
+

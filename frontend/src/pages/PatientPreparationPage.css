@@ -1,0 +1,196 @@
+/* ==========================================================================
+   PatientPreparationPage Styles (Hindi Healthcare Design)
+   ========================================================================== */
+
+.sahayak-patient-prep-page {
+  min-height: 100vh;
+  background-color: var(--color-surface-base);
+  display: flex;
+  flex-direction: column;
+}
+
+.sahayak-patient-prep-page.sahayak-lang-hi {
+  font-family: var(--font-hindi);
+}
+
+.sahayak-patient-prep-main {
+  flex: 1;
+  padding: var(--space-6) 0 var(--space-12) 0;
+}
+
+.sahayak-patient-prep-header {
+  margin-bottom: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sahayak-patient-prep-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: var(--line-height-tight);
+}
+
+.sahayak-patient-prep-desc {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin: 0;
+  max-width: 640px;
+  line-height: var(--line-height-normal);
+}
+
+.sahayak-patient-prep-languages {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.sahayak-patient-prep-lang-sep {
+  color: var(--color-text-muted);
+}
+
+.sahayak-patient-prep-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.sahayak-patient-prep-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .sahayak-patient-prep-cards-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-6);
+  }
+}
+
+/* Tip / Recommendation strip */
+.sahayak-patient-prep-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.sahayak-patient-prep-tip__icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-midnight);
+}
+
+.sahayak-patient-prep-tip__text {
+  margin: 0;
+  line-height: var(--line-height-normal);
+}
+
+/* Join Session Card */
+.sahayak-patient-join-card {
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sahayak-patient-join-card__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.sahayak-patient-join-card__desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: var(--line-height-normal);
+}
+
+.sahayak-patient-join-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-start;
+  margin-top: var(--space-2);
+}
+
+@media (min-width: 640px) {
+  .sahayak-patient-join-actions {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.sahayak-patient-join-btn {
+  min-height: 48px;
+  padding-left: var(--space-6);
+  padding-right: var(--space-6);
+}
+
+.sahayak-patient-change-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-sm);
+  color: var(--color-midnight);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: var(--font-weight-medium);
+}
+
+.sahayak-patient-change-link:hover {
+  color: var(--color-midnight-hover);
+}
+
+.sahayak-patient-dev-note {
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: var(--space-3);
+  margin-top: var(--space-1);
+}
+
+.sahayak-patient-dev-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-decoration: underline;
+}
+
+/* Privacy Strip */
+.sahayak-patient-privacy-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+.sahayak-patient-privacy-strip svg {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
