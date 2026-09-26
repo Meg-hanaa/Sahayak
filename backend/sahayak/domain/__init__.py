@@ -11,6 +11,7 @@ from sahayak.domain.enums import (
     SessionStatus,
 )
 from sahayak.domain.models import (
+    AccessGrant,
     Confirmation,
     Participant,
     RiskAssessment,
@@ -21,6 +22,7 @@ from sahayak.domain.models import (
 )
 
 __all__ = [
+    "AccessGrant",
     "Confirmation",
     "ConfirmationOutcome",
     "ConnectionStatus",

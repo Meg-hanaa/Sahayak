@@ -31,6 +31,49 @@ class SahayakError(Exception):
         self.details = details
 
 
+class SessionNotFoundError(SahayakError):
+    def __init__(self) -> None:
+        super().__init__("Session not found", code="session_not_found", status_code=status.HTTP_404_NOT_FOUND)
+
+
+class SessionExpiredError(SahayakError):
+    def __init__(self) -> None:
+        super().__init__("Session has expired", code="session_expired", status_code=status.HTTP_410_GONE)
+
+
+class InvalidAccessTokenError(SahayakError):
+    def __init__(self) -> None:
+        super().__init__(
+            "Invalid or missing session access token",
+            code="invalid_access_token",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+        )
+
+
+class InvalidRoleError(SahayakError):
+    def __init__(self, message: str = "Invalid participant role") -> None:
+        super().__init__(message, code="invalid_role", status_code=status.HTTP_400_BAD_REQUEST)
+
+
+class DuplicateParticipantError(SahayakError):
+    def __init__(self) -> None:
+        super().__init__(
+            "A participant with this role has already joined the session",
+            code="duplicate_participant",
+            status_code=status.HTTP_409_CONFLICT,
+        )
+
+
+class InvalidStateTransitionError(SahayakError):
+    def __init__(self, message: str = "Invalid session state transition") -> None:
+        super().__init__(message, code="invalid_state_transition", status_code=status.HTTP_409_CONFLICT)
+
+
+class ForbiddenSessionActionError(SahayakError):
+    def __init__(self, message: str = "Not allowed for this participant") -> None:
+        super().__init__(message, code="forbidden_session_action", status_code=status.HTTP_403_FORBIDDEN)
+
+
 def error_payload(*, code: str, message: str, details: Any | None = None) -> dict[str, Any]:
     """Build a consistent error response body."""
 

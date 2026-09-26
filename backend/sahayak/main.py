@@ -11,10 +11,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from sahayak import __version__
 from sahayak.api.errors import register_exception_handlers
 from sahayak.api.health import router as health_router
+from sahayak.api.sessions import router as sessions_router
 from sahayak.api.websocket import router as websocket_router
 from sahayak.config import Settings, get_settings
 from sahayak.logging import configure_logging, get_logger
 from sahayak.providers.registry import build_provider_registry
+from sahayak.services.clock import Clock, SystemClock
+from sahayak.services.sessions import SessionService
+from sahayak.services.store import InMemorySessionStore
 
 logger = get_logger(__name__)
 
@@ -34,11 +38,18 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logger.info("Sahayak backend shutting down")
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    *,
+    clock: Clock | None = None,
+    session_store: InMemorySessionStore | None = None,
+) -> FastAPI:
     """Build and configure the FastAPI application."""
 
     resolved = settings or get_settings()
     configure_logging(resolved)
+    resolved_clock = clock or SystemClock()
+    store = session_store or InMemorySessionStore()
 
     app = FastAPI(
         title=resolved.app_name,
@@ -48,6 +59,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         redoc_url=None,
     )
     app.state.settings = resolved
+    app.state.clock = resolved_clock
+    app.state.session_store = store
+    app.state.session_service = SessionService(store=store, settings=resolved, clock=resolved_clock)
     app.state.providers = build_provider_registry(resolved)
 
     app.add_middleware(
@@ -60,6 +74,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     register_exception_handlers(app)
     app.include_router(health_router)
     app.include_router(health_router, prefix=resolved.api_prefix)
+    app.include_router(sessions_router, prefix=resolved.api_prefix)
     app.include_router(websocket_router)
 
     return app

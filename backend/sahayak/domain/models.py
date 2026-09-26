@@ -20,13 +20,23 @@ from sahayak.domain.enums import (
 
 
 class Participant(BaseModel):
-    """A doctor, patient, or agent attached to a consultation session."""
+    """A doctor or patient attached to a consultation session."""
 
     participant_id: UUID = Field(default_factory=uuid4)
     session_id: UUID
     role: ParticipantRole
     connection_status: ConnectionStatus = ConnectionStatus.DISCONNECTED
     microphone_status: MicrophoneStatus = MicrophoneStatus.UNKNOWN
+
+
+class AccessGrant(BaseModel):
+    """Server-issued, role-bound credential for short-lived session access."""
+
+    token_hash: str
+    session_id: UUID
+    role: ParticipantRole
+    expires_at: datetime
+    joined: bool = False
 
 
 class Turn(BaseModel):
