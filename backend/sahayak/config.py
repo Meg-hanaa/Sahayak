@@ -38,6 +38,16 @@ class Settings(BaseSettings):
         default="/ws",
         validation_alias=AliasChoices("SAHAYAK_WEBSOCKET_PATH", "WEBSOCKET_PATH"),
     )
+    session_ttl_seconds: int = Field(
+        default=7200,
+        ge=1,
+        validation_alias=AliasChoices("SAHAYAK_SESSION_TTL_SECONDS", "SESSION_TTL_SECONDS"),
+    )
+    join_token_ttl_seconds: int = Field(
+        default=3600,
+        ge=1,
+        validation_alias=AliasChoices("SAHAYAK_JOIN_TOKEN_TTL_SECONDS", "JOIN_TOKEN_TTL_SECONDS"),
+    )
 
     assemblyai_api_key: str | None = Field(
         default=None,
