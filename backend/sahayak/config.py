@@ -5,7 +5,7 @@ from __future__ import annotations
 from enum import Enum
 from functools import lru_cache
 
-from pydantic import AliasChoices, Field, field_validator
+from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -69,6 +69,24 @@ class Settings(BaseSettings):
         default="placeholder",
         validation_alias=AliasChoices("TTS_PROVIDER_NAME", "SAHAYAK_TTS_PROVIDER_NAME"),
     )
+    speech_provider: str = Field(
+        default="mock",
+        validation_alias=AliasChoices("SAHAYAK_SPEECH_PROVIDER", "SPEECH_PROVIDER"),
+    )
+    assemblyai_streaming_url: str = Field(
+        default="wss://streaming.assemblyai.com/v3/ws",
+        validation_alias=AliasChoices("ASSEMBLYAI_STREAMING_URL", "SAHAYAK_ASSEMBLYAI_STREAMING_URL"),
+    )
+    assemblyai_sample_rate: int = Field(
+        default=16000,
+        ge=8000,
+        validation_alias=AliasChoices("ASSEMBLYAI_SAMPLE_RATE", "SAHAYAK_ASSEMBLYAI_SAMPLE_RATE"),
+    )
+    assemblyai_stream_timeout_seconds: float = Field(
+        default=10.0,
+        gt=0,
+        validation_alias=AliasChoices("ASSEMBLYAI_STREAM_TIMEOUT_SECONDS", "SAHAYAK_ASSEMBLYAI_STREAM_TIMEOUT_SECONDS"),
+    )
 
     @field_validator("log_level")
     @classmethod
@@ -102,6 +120,29 @@ class Settings(BaseSettings):
         if not path.startswith("/"):
             path = f"/{path}"
         return path
+
+    @field_validator("assemblyai_api_key", "translation_api_key", "tts_api_key", mode="before")
+    @classmethod
+    def empty_secret_to_none(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
+
+    @field_validator("speech_provider")
+    @classmethod
+    def normalize_speech_provider(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if normalized not in {"mock", "assemblyai"}:
+            raise ValueError("speech_provider must be 'mock' or 'assemblyai'")
+        return normalized
+
+    @model_validator(mode="after")
+    def require_assemblyai_credentials(self) -> Settings:
+        if self.speech_provider == "assemblyai" and not self.assemblyai_api_key:
+            raise ValueError("ASSEMBLYAI_API_KEY is required when SAHAYAK_SPEECH_PROVIDER=assemblyai")
+        return self
 
 
 @lru_cache

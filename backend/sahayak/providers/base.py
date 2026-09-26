@@ -1,31 +1,65 @@
-"""Abstract provider contracts used by later Sahayak phases."""
+"""Streaming speech-to-text contracts."""
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping
+from collections.abc import Awaitable, Callable, Mapping
 from typing import Any
 from uuid import UUID
+
+from sahayak.domain.enums import LanguageCode, ParticipantRole
+from sahayak.domain.events import SpeechEvent
+
+SpeechEventHandler = Callable[[SpeechEvent], Awaitable[None]]
 
 
 class UnimplementedProviderError(NotImplementedError):
     """Raised when a provider method is invoked before its phase is implemented."""
 
 
+class SpeechProviderError(RuntimeError):
+    """Raised for recoverable streaming-provider failures."""
+
+
+class SpeechProviderConfigurationError(ValueError):
+    """Raised when a speech provider is missing required configuration."""
+
+
 class SpeechToTextProvider(ABC):
-    """Streaming speech-to-text adapter (AssemblyAI in later phases)."""
+    """Streaming speech-to-text adapter. Implementations emit normalized SpeechEvents."""
+
+    name: str
 
     @abstractmethod
-    async def start_stream(self, *, session_id: UUID, participant_id: UUID) -> None:
-        """Open a streaming transcription session."""
+    async def start_stream(
+        self,
+        *,
+        session_id: UUID,
+        participant_id: UUID,
+        role: ParticipantRole,
+        language: LanguageCode,
+        on_event: SpeechEventHandler,
+    ) -> None:
+        """Open a role-specific streaming transcription session."""
 
     @abstractmethod
-    async def send_audio(self, *, session_id: UUID, chunk: bytes) -> None:
-        """Send an audio chunk to the streaming session."""
+    async def send_audio(
+        self,
+        *,
+        session_id: UUID,
+        participant_id: UUID,
+        chunk: bytes,
+    ) -> None:
+        """Send an audio chunk to the participant's streaming session."""
 
     @abstractmethod
-    async def close_stream(self, *, session_id: UUID) -> None:
-        """Close the streaming transcription session."""
+    async def close_stream(
+        self,
+        *,
+        session_id: UUID,
+        participant_id: UUID,
+    ) -> None:
+        """Close the participant's streaming transcription session."""
 
 
 class TranslationProvider(ABC):
@@ -53,5 +87,5 @@ class TextToSpeechProvider(ABC):
 
 def not_implemented(capability: str) -> Any:
     raise UnimplementedProviderError(
-        f"{capability} is not implemented in Phase 0. Provider adapters are placeholders only."
+        f"{capability} is not implemented in this phase. Provider adapters remain placeholders."
     )
