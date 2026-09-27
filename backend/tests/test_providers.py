@@ -7,6 +7,7 @@ import pytest
 from sahayak.providers import (
     AssemblyAIProvider,
     MockSpeechToTextProvider,
+    MockTranslationProvider,
     PlaceholderTTSProvider,
     PlaceholderTranslationProvider,
     SpeechProviderConfigurationError,
@@ -31,7 +32,7 @@ class TestRegistryProviderSelection:
         settings = _test_settings()
         registry = build_provider_registry(settings)
         assert isinstance(registry.speech_to_text, MockSpeechToTextProvider)
-        assert isinstance(registry.translation, PlaceholderTranslationProvider)
+        assert isinstance(registry.translation, MockTranslationProvider)
         assert isinstance(registry.tts, PlaceholderTTSProvider)
 
     def test_explicit_mock_registry(self) -> None:
@@ -80,10 +81,15 @@ class TestAssemblyAIProviderConfiguration:
 class TestPlaceholderProviders:
     @pytest.mark.asyncio
     async def test_translation_placeholder_is_not_implemented(self) -> None:
-        registry = build_provider_registry(_test_settings())
+        """PlaceholderTranslationProvider raises UnimplementedProviderError."""
+        from sahayak.providers.translation import PlaceholderTranslationProvider
+        from sahayak.domain.enums import LanguageCode
+        provider = PlaceholderTranslationProvider()
         with pytest.raises(UnimplementedProviderError):
-            await registry.translation.translate(
-                text="hello", source_language="en", target_language="hi"
+            await provider.translate(
+                text="hello",
+                source_language=LanguageCode.ENGLISH,
+                target_language=LanguageCode.HINDI,
             )
 
     @pytest.mark.asyncio

@@ -8,16 +8,25 @@ from sahayak.providers.base import (
     SpeechToTextProvider,
     TextToSpeechProvider,
     TranslationProvider,
+    TranslationProviderConfigurationError,
+    TranslationProviderError,
     UnimplementedProviderError,
+    UnsupportedLanguagePairError,
 )
 from sahayak.providers.mock import MockSpeechToTextProvider
 from sahayak.providers.registry import ProviderRegistry, build_provider_registry
-from sahayak.providers.translation import PlaceholderTranslationProvider
+from sahayak.providers.translation import (
+    GoogleTranslationProvider,
+    MockTranslationProvider,
+    PlaceholderTranslationProvider,
+)
 from sahayak.providers.tts import PlaceholderTTSProvider
 
 __all__ = [
     "AssemblyAIProvider",
+    "GoogleTranslationProvider",
     "MockSpeechToTextProvider",
+    "MockTranslationProvider",
     "PlaceholderTTSProvider",
     "PlaceholderTranslationProvider",
     "ProviderRegistry",
@@ -27,6 +36,9 @@ __all__ = [
     "SpeechToTextProvider",
     "TextToSpeechProvider",
     "TranslationProvider",
+    "TranslationProviderConfigurationError",
+    "TranslationProviderError",
     "UnimplementedProviderError",
+    "UnsupportedLanguagePairError",
     "build_provider_registry",
 ]

@@ -20,6 +20,12 @@ from sahayak.domain.models import (
     Turn,
     VerifiedFact,
 )
+from sahayak.domain.translation import (
+    TranslationResult,
+    TranslationStatus,
+    make_failure,
+    make_success,
+)
 
 __all__ = [
     "AccessGrant",
@@ -36,6 +42,10 @@ __all__ = [
     "Session",
     "SessionRecord",
     "SessionStatus",
+    "TranslationResult",
+    "TranslationStatus",
     "Turn",
     "VerifiedFact",
+    "make_failure",
+    "make_success",
 ]

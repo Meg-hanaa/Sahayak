@@ -62,8 +62,13 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("TTS_API_KEY", "SAHAYAK_TTS_API_KEY"),
     )
     translation_provider_name: str = Field(
-        default="placeholder",
+        default="mock",
         validation_alias=AliasChoices("TRANSLATION_PROVIDER_NAME", "SAHAYAK_TRANSLATION_PROVIDER_NAME"),
+    )
+    translation_timeout_seconds: float = Field(
+        default=10.0,
+        gt=0,
+        validation_alias=AliasChoices("TRANSLATION_TIMEOUT_SECONDS", "SAHAYAK_TRANSLATION_TIMEOUT_SECONDS"),
     )
     tts_provider_name: str = Field(
         default="placeholder",
@@ -138,10 +143,24 @@ class Settings(BaseSettings):
             raise ValueError("speech_provider must be 'mock' or 'assemblyai'")
         return normalized
 
+    @field_validator("translation_provider_name")
+    @classmethod
+    def normalize_translation_provider(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if normalized not in {"mock", "google", "placeholder"}:
+            raise ValueError("translation_provider_name must be 'mock', 'google', or 'placeholder'")
+        return normalized
+
     @model_validator(mode="after")
     def require_assemblyai_credentials(self) -> Settings:
         if self.speech_provider == "assemblyai" and not self.assemblyai_api_key:
             raise ValueError("ASSEMBLYAI_API_KEY is required when SAHAYAK_SPEECH_PROVIDER=assemblyai")
+        return self
+
+    @model_validator(mode="after")
+    def require_translation_credentials(self) -> Settings:
+        if self.translation_provider_name == "google" and not self.translation_api_key:
+            raise ValueError("TRANSLATION_API_KEY is required when TRANSLATION_PROVIDER_NAME=google")
         return self
 
 

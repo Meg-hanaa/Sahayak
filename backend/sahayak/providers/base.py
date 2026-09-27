@@ -1,4 +1,4 @@
-"""Streaming speech-to-text contracts."""
+"""Provider base interfaces and shared error types — Phases 1-3."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from uuid import UUID
 
 from sahayak.domain.enums import LanguageCode, ParticipantRole
 from sahayak.domain.events import SpeechEvent
+from sahayak.domain.translation import TranslationResult
 
 SpeechEventHandler = Callable[[SpeechEvent], Awaitable[None]]
 
@@ -23,6 +24,23 @@ class SpeechProviderError(RuntimeError):
 
 class SpeechProviderConfigurationError(ValueError):
     """Raised when a speech provider is missing required configuration."""
+
+
+class TranslationProviderError(RuntimeError):
+    """Raised for recoverable translation-provider failures (timeout, HTTP error, etc.)."""
+
+
+class TranslationProviderConfigurationError(ValueError):
+    """Raised when a translation provider is missing required configuration."""
+
+
+class UnsupportedLanguagePairError(TranslationProviderError):
+    """Raised when the provider does not support the requested language pair."""
+
+    def __init__(self, source: str, target: str) -> None:
+        super().__init__(f"Unsupported language pair: {source!r} → {target!r}")
+        self.source = source
+        self.target = target
 
 
 class SpeechToTextProvider(ABC):
@@ -63,18 +81,26 @@ class SpeechToTextProvider(ABC):
 
 
 class TranslationProvider(ABC):
-    """English-Hindi translation adapter."""
+    """English-Hindi translation adapter.
+
+    All implementations must:
+    - Return a :class:`~sahayak.domain.translation.TranslationResult` (never a bare string).
+    - Never invent output on failure — ``translated_text`` must be ``None`` on error.
+    - Preserve ``source_text`` exactly.
+    """
+
+    name: str
 
     @abstractmethod
     async def translate(
         self,
         *,
         text: str,
-        source_language: str,
-        target_language: str,
+        source_language: LanguageCode,
+        target_language: LanguageCode,
         protected_terms: Mapping[str, str] | None = None,
-    ) -> str:
-        """Translate finalized turn text."""
+    ) -> TranslationResult:
+        """Translate finalized turn text and return a normalized TranslationResult."""
 
 
 class TextToSpeechProvider(ABC):
