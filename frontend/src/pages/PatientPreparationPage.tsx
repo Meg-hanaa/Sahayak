@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useId } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { Shield, ArrowLeft, Headphones, AlertCircle } from 'lucide-react';
 import { TaskHeader } from '../components/TaskHeader';
 import { Container } from '../components/Container';
@@ -12,11 +12,13 @@ import { useMicrophoneCheck } from '../hooks/useMicrophoneCheck';
 import { useSpeakerCheck } from '../hooks/useSpeakerCheck';
 import { sessionApi } from '../services/sessionApi';
 import { getSessionToken, setSessionToken } from '../utils/tokenStorage';
+import { mapToBackendMicrophoneStatus } from '../utils/microphoneStatusMapper';
 import './PatientPreparationPage.css';
 
 export const PatientPreparationPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const mic = useMicrophoneCheck();
   const speaker = useSpeakerCheck();
   const joinHeadingId = useId();
@@ -25,24 +27,23 @@ export const PatientPreparationPage: React.FC = () => {
   const [isJoining, setIsJoining] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Read token from URL query params, store in sessionStorage, and immediately strip from visible URL
+  // Read token from URL query params, store in sessionStorage, and strip from visible URL via React Router replace
   useEffect(() => {
     if (!sessionId) return;
 
     let resolvedToken = getSessionToken(sessionId);
-    if (typeof window !== 'undefined') {
-      const searchParams = new URLSearchParams(window.location.search);
-      const urlToken = searchParams.get('token');
-      if (urlToken) {
-        resolvedToken = urlToken;
-        // Retain token strictly in sessionStorage for this browser session
-        setSessionToken(sessionId, urlToken);
-        // Remove token from visible browser URL bar without page reload
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
+    const searchParams = new URLSearchParams(location.search);
+    const urlToken = searchParams.get('token');
+
+    if (urlToken) {
+      resolvedToken = urlToken;
+      // Retain token strictly in sessionStorage for this browser session
+      setSessionToken(sessionId, urlToken);
+      // Remove token from visible browser URL bar using React Router replace navigation
+      navigate(`/join/${sessionId}`, { replace: true });
     }
     setToken(resolvedToken);
-  }, [sessionId]);
+  }, [sessionId, location.search, navigate]);
 
   // Mutual exclusion: Prevent speaker test from bleeding into mic test or vice versa
   const isMicBusy = mic.status === 'requesting' || mic.status === 'listening';
@@ -58,7 +59,7 @@ export const PatientPreparationPage: React.FC = () => {
     setErrorMessage(null);
 
     try {
-      const micStatus = mic.status === 'sound_detected' ? 'active' : 'unknown';
+      const micStatus = mapToBackendMicrophoneStatus(mic.status);
       // Call verified backend join endpoint
       await sessionApi.joinSession(sessionId, {
         token,

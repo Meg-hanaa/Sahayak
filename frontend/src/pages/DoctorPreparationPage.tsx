@@ -12,6 +12,7 @@ import { useMicrophoneCheck } from '../hooks/useMicrophoneCheck';
 import { useSpeakerCheck } from '../hooks/useSpeakerCheck';
 import { sessionApi } from '../services/sessionApi';
 import { setSessionToken } from '../utils/tokenStorage';
+import { mapToBackendMicrophoneStatus } from '../utils/microphoneStatusMapper';
 import './DoctorPreparationPage.css';
 
 export const DoctorPreparationPage: React.FC = () => {
@@ -47,7 +48,7 @@ export const DoctorPreparationPage: React.FC = () => {
 
       // 3. Join session as doctor via POST /api/sessions/{id}/join
       setCreationStatus('joining');
-      const micStatus = mic.status === 'sound_detected' ? 'active' : 'unknown';
+      const micStatus = mapToBackendMicrophoneStatus(mic.status);
       await sessionApi.joinSession(sessionId, {
         token: doctorToken,
         role: 'doctor',

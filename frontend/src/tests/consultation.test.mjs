@@ -1,10 +1,11 @@
 import assert from 'node:assert';
 import React, { act, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 
 import { sessionApi, SessionApiError } from '../services/sessionApi.ts';
 import { ConsultationAdapter } from '../services/consultationAdapter.ts';
+import { mapToBackendMicrophoneStatus } from '../utils/microphoneStatusMapper.ts';
 import { parseInvitationInput } from '../utils/invitationParser.ts';
 import {
   getSessionToken,
@@ -410,12 +411,12 @@ async function runConsultationTests() {
               participant_id: 'doc-1',
               role: 'doctor',
               connection_status: 'connected',
-              microphone_status: 'active',
+              microphone_status: 'granted',
             },
             {
               participant_id: 'pat-2',
               role: 'patient',
-              connection_status: 'waiting',
+              connection_status: 'disconnected',
               microphone_status: 'unknown',
             },
           ],
@@ -423,19 +424,61 @@ async function runConsultationTests() {
       };
     };
 
+    // 1-Mapper: Verify mapper translates status to backend enums, never 'active'
+    assert.strictEqual(mapToBackendMicrophoneStatus('sound_detected'), 'granted');
+    assert.strictEqual(mapToBackendMicrophoneStatus('denied'), 'blocked');
+    assert.strictEqual(mapToBackendMicrophoneStatus('idle'), 'unknown');
+    assert.strictEqual(mapToBackendMicrophoneStatus('requesting'), 'unknown');
+    assert.strictEqual(mapToBackendMicrophoneStatus('listening'), 'unknown');
+    assert.strictEqual(mapToBackendMicrophoneStatus('no_sound_detected'), 'unknown');
+    assert.strictEqual(mapToBackendMicrophoneStatus('error'), 'unknown');
+    const allMicStatuses = ['sound_detected', 'denied', 'idle', 'requesting', 'listening', 'no_sound_detected', 'error'];
+    allMicStatuses.forEach((st) => {
+      assert.notStrictEqual(
+        mapToBackendMicrophoneStatus(st),
+        'active',
+        `Mapper must never produce active for status ${st}`
+      );
+    });
+
     // 1A: Create Session
     const created = await sessionApi.createSession();
     assert.strictEqual(created.session.session_id, '550e8400-e29b-41d4-a716-446655440000');
     assert.strictEqual(created.access.doctor.token, 'doc-secret-token-111');
     assert.strictEqual(created.access.patient.token, 'pat-secret-token-222');
 
-    // 1B: Join Session
-    const joined = await sessionApi.joinSession('550e8400-e29b-41d4-a716-446655440000', {
+    // 1B: Join Session - Test with granted, blocked, unknown (never active)
+    const joinedGranted = await sessionApi.joinSession('550e8400-e29b-41d4-a716-446655440000', {
       token: 'doc-secret-token-111',
       role: 'doctor',
-      microphone_status: 'active',
+      microphone_status: 'granted',
     });
-    assert.strictEqual(joined.participant.role, 'doctor');
+    assert.strictEqual(joinedGranted.participant.role, 'doctor');
+    assert.strictEqual(joinedGranted.participant.microphone_status, 'granted');
+
+    const joinedBlocked = await sessionApi.joinSession('550e8400-e29b-41d4-a716-446655440000', {
+      token: 'doc-secret-token-111',
+      role: 'doctor',
+      microphone_status: 'blocked',
+    });
+    assert.strictEqual(joinedBlocked.participant.microphone_status, 'blocked');
+
+    const joinedUnknown = await sessionApi.joinSession('550e8400-e29b-41d4-a716-446655440000', {
+      token: 'pat-secret-token-222',
+      role: 'patient',
+      microphone_status: 'unknown',
+    });
+    assert.strictEqual(joinedUnknown.participant.role, 'patient');
+    assert.strictEqual(joinedUnknown.participant.microphone_status, 'unknown');
+
+    // Verify all recorded join requests never sent 'active'
+    const joinCalls = recordedCalls.filter((c) => String(c.url).includes('/join'));
+    assert.ok(joinCalls.length >= 3, 'Must record all join requests');
+    for (const call of joinCalls) {
+      const parsedBody = JSON.parse(call.options.body);
+      assert.notStrictEqual(parsedBody.microphone_status, 'active', 'Join requests must never send active');
+      assert.ok(['granted', 'blocked', 'unknown', 'muted'].includes(parsedBody.microphone_status));
+    }
 
     // 1C: Get Session
     const fetched = await sessionApi.getSession(
@@ -487,6 +530,7 @@ async function runConsultationTests() {
     globalThis.document = doc;
     globalThis.window = win;
 
+    let doctorJoinBody = null;
     globalThis.fetch = async (url, options = {}) => {
       const strUrl = String(url);
       if (strUrl.endsWith('/api/sessions') && options.method === 'POST') {
@@ -519,6 +563,7 @@ async function runConsultationTests() {
         };
       }
       if (strUrl.includes('/join') && options.method === 'POST') {
+        doctorJoinBody = JSON.parse(options.body);
         return {
           ok: true,
           status: 200,
@@ -536,7 +581,7 @@ async function runConsultationTests() {
               participant_id: 'p1',
               role: 'doctor',
               connection_status: 'disconnected',
-              microphone_status: 'unknown',
+              microphone_status: doctorJoinBody.microphone_status,
             },
           }),
         };
@@ -589,7 +634,13 @@ async function runConsultationTests() {
       'localStorage must remain strictly unused'
     );
 
-    // 2C: Verify InvitationResultCard rendered with full URL containing sessionId and patientToken
+    // 2C: Verify join payload sent 'unknown' for initial mic status and never 'active'
+    assert.ok(doctorJoinBody, 'Doctor join request must be sent');
+    assert.strictEqual(doctorJoinBody.role, 'doctor');
+    assert.strictEqual(doctorJoinBody.microphone_status, 'unknown');
+    assert.notStrictEqual(doctorJoinBody.microphone_status, 'active');
+
+    // 2D: Verify InvitationResultCard rendered with full URL containing sessionId and patientToken
     const fullText = getAllText(container);
     assert.match(fullText, /doc-sess-501/, 'Must display generated session ID');
     assert.match(fullText, /Enter consultation room/, 'Must offer link to enter consultation room');
@@ -659,6 +710,12 @@ async function runConsultationTests() {
       return { ok: false, status: 500 };
     };
 
+    let patientLocation = null;
+    function PatientLocationObserver() {
+      patientLocation = useLocation();
+      return null;
+    }
+
     const root = createRoot(container);
     await act(async () => {
       root.render(
@@ -673,7 +730,12 @@ async function runConsultationTests() {
               null,
               React.createElement(Route, {
                 path: '/join/:sessionId',
-                element: React.createElement(PatientPreparationPage),
+                element: React.createElement(
+                  React.Fragment,
+                  null,
+                  React.createElement(PatientPreparationPage),
+                  React.createElement(PatientLocationObserver)
+                ),
               }),
               React.createElement(Route, {
                 path: '/patient/:sessionId',
@@ -685,16 +747,22 @@ async function runConsultationTests() {
       );
     });
 
-    // Verify token stored in sessionStorage and stripped from visible URL bar
+    // Verify token stored in sessionStorage and stripped from router location via replace navigation
     assert.strictEqual(
       mockSessionStorage.getItem('sahayak_token_pat-sess-701'),
       'token-pat-999',
       'Patient token must be saved to sessionStorage'
     );
+    assert.ok(patientLocation, 'Patient location probe must be active');
     assert.strictEqual(
-      win.location.pathname,
+      patientLocation.pathname,
       '/join/pat-sess-701',
-      'Visible URL must be stripped of token'
+      'Router pathname must match session route'
+    );
+    assert.strictEqual(
+      patientLocation.search,
+      '',
+      'Router search must be stripped of token query param'
     );
 
     // Find and click "सत्र में शामिल हों" (Join session)
@@ -710,6 +778,8 @@ async function runConsultationTests() {
     assert.ok(joinCalledWith, 'Must call backend join endpoint');
     assert.strictEqual(joinCalledWith.token, 'token-pat-999');
     assert.strictEqual(joinCalledWith.role, 'patient');
+    assert.strictEqual(joinCalledWith.microphone_status, 'unknown');
+    assert.notStrictEqual(joinCalledWith.microphone_status, 'active');
 
     await act(async () => {
       root.unmount();
@@ -740,13 +810,13 @@ async function runConsultationTests() {
                 participant_id: 'p1',
                 role: 'doctor',
                 connection_status: 'connected',
-                microphone_status: 'active',
+                microphone_status: 'granted',
               },
               {
                 participant_id: 'p2',
                 role: 'patient',
                 connection_status: 'connected',
-                microphone_status: 'active',
+                microphone_status: 'granted',
               },
             ],
           }),
@@ -776,11 +846,101 @@ async function runConsultationTests() {
 
     adapter.disconnect();
     adapter.destroy();
+
+    // 4C: Presence mapping tests for absent, connecting, connected, and disconnected
+    // 1. Absent participant -> waiting
+    globalThis.fetch = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        session_id: 'sess-pres-test',
+        status: 'active',
+        created_at: '2026-09-27T10:00:00Z',
+        doctor_language: 'en',
+        patient_language: 'hi',
+        retention_expires_at: '2026-09-27T10:30:00Z',
+        participants: [
+          { participant_id: 'p1', role: 'doctor', connection_status: 'connected', microphone_status: 'granted' },
+        ],
+      }),
+    });
+    const adapterAbsent = new ConsultationAdapter('sess-pres-test', 'doctor');
+    await adapterAbsent.connect('sess-pres-test', 'doctor', 'token-doc-1');
+    assert.strictEqual(adapterAbsent.getState().patient.connectionStatus, 'waiting', 'Absent participant must be waiting');
+    adapterAbsent.destroy();
+
+    // 2. Connecting participant -> connecting
+    globalThis.fetch = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        session_id: 'sess-pres-test',
+        status: 'active',
+        created_at: '2026-09-27T10:00:00Z',
+        doctor_language: 'en',
+        patient_language: 'hi',
+        retention_expires_at: '2026-09-27T10:30:00Z',
+        participants: [
+          { participant_id: 'p1', role: 'doctor', connection_status: 'connected', microphone_status: 'granted' },
+          { participant_id: 'p2', role: 'patient', connection_status: 'connecting', microphone_status: 'unknown' },
+        ],
+      }),
+    });
+    const adapterConnecting = new ConsultationAdapter('sess-pres-test', 'doctor');
+    await adapterConnecting.connect('sess-pres-test', 'doctor', 'token-doc-1');
+    assert.strictEqual(adapterConnecting.getState().patient.connectionStatus, 'connecting', 'Connecting participant must be connecting');
+    adapterConnecting.destroy();
+
+    // 3. Connected participant -> connected
+    globalThis.fetch = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        session_id: 'sess-pres-test',
+        status: 'active',
+        created_at: '2026-09-27T10:00:00Z',
+        doctor_language: 'en',
+        patient_language: 'hi',
+        retention_expires_at: '2026-09-27T10:30:00Z',
+        participants: [
+          { participant_id: 'p1', role: 'doctor', connection_status: 'connected', microphone_status: 'granted' },
+          { participant_id: 'p2', role: 'patient', connection_status: 'connected', microphone_status: 'granted' },
+        ],
+      }),
+    });
+    const adapterConnected = new ConsultationAdapter('sess-pres-test', 'doctor');
+    await adapterConnected.connect('sess-pres-test', 'doctor', 'token-doc-1');
+    assert.strictEqual(adapterConnected.getState().patient.connectionStatus, 'connected', 'Connected participant must be connected');
+    adapterConnected.destroy();
+
+    // 4. Disconnected participant -> disconnected (MUST NOT BE waiting)
+    globalThis.fetch = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        session_id: 'sess-pres-test',
+        status: 'active',
+        created_at: '2026-09-27T10:00:00Z',
+        doctor_language: 'en',
+        patient_language: 'hi',
+        retention_expires_at: '2026-09-27T10:30:00Z',
+        participants: [
+          { participant_id: 'p1', role: 'doctor', connection_status: 'connected', microphone_status: 'granted' },
+          { participant_id: 'p2', role: 'patient', connection_status: 'disconnected', microphone_status: 'granted' },
+        ],
+      }),
+    });
+    const adapterDisconnected = new ConsultationAdapter('sess-pres-test', 'doctor');
+    await adapterDisconnected.connect('sess-pres-test', 'doctor', 'token-doc-1');
+    assert.strictEqual(adapterDisconnected.getState().patient.connectionStatus, 'disconnected', 'Disconnected participant must be disconnected');
+    assert.notStrictEqual(adapterDisconnected.getState().patient.connectionStatus, 'waiting', 'Disconnected participant must NEVER be reported as waiting');
+    adapterDisconnected.destroy();
+
     console.log('✓ ConsultationAdapter connects to real API & WebSocket, rejects fake fixtures, and verifies peer status.');
   }
 
   // -------------------------------------------------------------------------
-  // TEST 5: DOCTOR ENDING SESSION VS PATIENT LEAVING LOCALLY
+  // TEST 5: DOCTOR ENDING SESSION VS PATIENT LEAVING LOCALLY & FAILURE RETRY
   // -------------------------------------------------------------------------
   console.log('\n--- TEST 5: DOCTOR ENDING SESSION VS PATIENT LEAVING LOCALLY ---');
   {
@@ -827,7 +987,70 @@ async function runConsultationTests() {
     assert.strictEqual(patAdapter.getState().status, 'ended');
     patAdapter.destroy();
 
-    console.log('✓ Doctor termination and patient local departure enforce strict role permissions.');
+    // 5C: When backend end request fails, session is NOT falsely ended, state and connection are preserved, error is set, and retry succeeds
+    let failEnd = true;
+    globalThis.fetch = async (url, options = {}) => {
+      const strUrl = String(url);
+      if (strUrl.endsWith('/end') && options.method === 'POST') {
+        if (failEnd) {
+          return {
+            ok: false,
+            status: 500,
+            json: async () => ({ error: { code: 'server_error', message: 'Failed to persist session end' } }),
+          };
+        }
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ session_id: 'sess-end-retry-test', status: 'ended' }),
+        };
+      }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          session_id: 'sess-end-retry-test',
+          status: 'active',
+          participants: [],
+        }),
+      };
+    };
+
+    const retryDocAdapter = new ConsultationAdapter('sess-end-retry-test', 'doctor');
+    await retryDocAdapter.connect('sess-end-retry-test', 'doctor', 'retry-doc-token');
+    assert.strictEqual(retryDocAdapter.getState().status, 'active');
+
+    // Attempt end when backend fails
+    await assert.rejects(
+      async () => {
+        await retryDocAdapter.endConsultation();
+      },
+      (err) => {
+        assert.ok(err instanceof Error);
+        return true;
+      }
+    );
+
+    // Active state and connection preserved
+    assert.strictEqual(
+      retryDocAdapter.getState().status,
+      'active',
+      'Session must remain active when backend end call fails'
+    );
+    assert.ok(retryDocAdapter.getState().errorMessage, 'Error message must be set for user');
+    assert.match(retryDocAdapter.getState().errorMessage, /Failed to persist session end/);
+
+    // Doctor retries endConsultation after backend recovers
+    failEnd = false;
+    await retryDocAdapter.endConsultation();
+    assert.strictEqual(
+      retryDocAdapter.getState().status,
+      'ended',
+      'Session transitions to ended after successful end consultation retry'
+    );
+    retryDocAdapter.destroy();
+
+    console.log('✓ Doctor termination, failure recovery retry, and patient local departure enforce strict contract.');
   }
 
   // -------------------------------------------------------------------------
@@ -855,7 +1078,7 @@ async function runConsultationTests() {
             participant_id: 'doc-ui',
             role: 'doctor',
             connection_status: 'connected',
-            microphone_status: 'active',
+            microphone_status: 'granted',
           },
         ],
       }),
@@ -903,10 +1126,114 @@ async function runConsultationTests() {
     // 6D: Clinical prototype disclaimer
     assert.match(fullText, new RegExp(CLINICAL_DISCLAIMER_EN));
 
+    // 6E: Absent participant displays Waiting banner in Doctor Screen
+    assert.match(fullText, /Patient has not joined the consultation yet/);
+
     await act(async () => {
       root.unmount();
     });
-    console.log('✓ Doctor screen renders empty transcript notice, disabled mute control, and clinical disclaimers.');
+
+    // 6F: Disconnected patient displays Disconnected banner (not waiting banner)
+    mockSessionStorage.setItem('sahayak_token_med-ui-802', 'token-ui-doc-2');
+    globalThis.fetch = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        session_id: 'med-ui-802',
+        status: 'active',
+        created_at: '2026-09-27T10:00:00Z',
+        doctor_language: 'en',
+        patient_language: 'hi',
+        retention_expires_at: '2026-09-27T10:30:00Z',
+        participants: [
+          { participant_id: 'doc-ui', role: 'doctor', connection_status: 'connected', microphone_status: 'granted' },
+          { participant_id: 'pat-ui', role: 'patient', connection_status: 'disconnected', microphone_status: 'granted' },
+        ],
+      }),
+    });
+
+    const rootDocDisconn = createRoot(container);
+    await act(async () => {
+      rootDocDisconn.render(
+        React.createElement(
+          StrictMode,
+          null,
+          React.createElement(
+            MemoryRouter,
+            { initialEntries: ['/doctor/med-ui-802'] },
+            React.createElement(
+              Routes,
+              null,
+              React.createElement(Route, {
+                path: '/doctor/:sessionId',
+                element: React.createElement(DoctorConsultationPage),
+              })
+            )
+          )
+        )
+      );
+    });
+
+    const textDocDisconn = getAllText(container);
+    assert.match(textDocDisconn, /Patient is currently disconnected\. Reconnecting\.\.\./);
+    assert.ok(!textDocDisconn.includes('Patient has not joined the consultation yet'), 'Disconnected peer must NOT show waiting banner');
+    assert.match(textDocDisconn, /Patient disconnected/);
+
+    await act(async () => {
+      rootDocDisconn.unmount();
+    });
+
+    // 6G: Patient screen with disconnected doctor displays Hindi Disconnected banner
+    mockSessionStorage.setItem('sahayak_token_med-ui-803', 'token-ui-pat-3');
+    globalThis.fetch = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        session_id: 'med-ui-803',
+        status: 'active',
+        created_at: '2026-09-27T10:00:00Z',
+        doctor_language: 'en',
+        patient_language: 'hi',
+        retention_expires_at: '2026-09-27T10:30:00Z',
+        participants: [
+          { participant_id: 'doc-ui', role: 'doctor', connection_status: 'disconnected', microphone_status: 'granted' },
+          { participant_id: 'pat-ui', role: 'patient', connection_status: 'connected', microphone_status: 'granted' },
+        ],
+      }),
+    });
+
+    const rootPatDisconn = createRoot(container);
+    await act(async () => {
+      rootPatDisconn.render(
+        React.createElement(
+          StrictMode,
+          null,
+          React.createElement(
+            MemoryRouter,
+            { initialEntries: ['/patient/med-ui-803'] },
+            React.createElement(
+              Routes,
+              null,
+              React.createElement(Route, {
+                path: '/patient/:sessionId',
+                element: React.createElement(PatientConsultationPage),
+              })
+            )
+          )
+        )
+      );
+    });
+
+    const textPatDisconn = getAllText(container);
+    assert.match(textPatDisconn, /डॉक्टर डिस्कनेक्ट हो गए हैं। पुनः कनेक्ट करने का प्रयास किया जा रहा है\.\.\./);
+    assert.ok(!textPatDisconn.includes('डॉक्टर की प्रतीक्षा की जा रही है'), 'Disconnected doctor must NOT show waiting banner');
+    assert.match(textPatDisconn, /डॉक्टर डिस्कनेक्ट हो गए हैं/);
+
+    await act(async () => {
+      rootPatDisconn.unmount();
+    });
+
+    console.log('✓ Doctor and patient screens render accurate empty transcripts, disabled mute controls, and peer connection states (waiting vs disconnected).');
   }
 
   console.log('\n================================================================');

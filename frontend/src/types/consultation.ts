@@ -5,11 +5,24 @@
 
 export type ParticipantRole = 'doctor' | 'patient';
 
-export type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting' | 'waiting' | 'connecting' | 'error';
+/**
+ * Participant connection status:
+ * - 'connected': Participant has an active authenticated connection.
+ * - 'connecting': Participant socket is currently establishing connection.
+ * - 'disconnected': Participant exists in session but has disconnected.
+ * - 'waiting': Participant is absent and has not joined the session yet.
+ */
+export type ConnectionStatus = 'connected' | 'connecting' | 'disconnected' | 'waiting';
 
 export type SessionStatus = 'created' | 'ready' | 'active' | 'paused' | 'ended' | 'error' | 'loading';
 
 export type LanguageCode = 'en' | 'hi';
+
+/**
+ * Backend-verified microphone status enum:
+ * 'unknown' | 'granted' | 'blocked' | 'muted'
+ */
+export type BackendMicrophoneStatus = 'unknown' | 'granted' | 'blocked' | 'muted';
 
 export type SystemActivityState =
   | 'idle'
@@ -23,6 +36,7 @@ export interface ParticipantInfo {
   participantId: string;
   role: ParticipantRole;
   connectionStatus: ConnectionStatus;
+  microphoneStatus?: BackendMicrophoneStatus;
   isMuted: boolean;
 }
 

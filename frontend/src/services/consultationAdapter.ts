@@ -1,4 +1,5 @@
 import type {
+  ConnectionStatus,
   ConsultationSessionState,
   ParticipantRole,
   SystemActivityState,
@@ -6,6 +7,7 @@ import type {
 import {
   sessionApi,
   getWebSocketUrl,
+  type ParticipantResponse,
   type SessionResponse,
 } from './sessionApi.ts';
 
@@ -93,7 +95,7 @@ export class ConsultationAdapter implements IConsultationAdapter {
     if (!token) {
       this.updateState({
         status: 'error',
-        connectionStatus: 'error',
+        connectionStatus: 'disconnected',
         errorMessage:
           role === 'doctor'
             ? 'Access token missing. Please create and join the consultation from the preparation screen.'
@@ -122,7 +124,7 @@ export class ConsultationAdapter implements IConsultationAdapter {
         err instanceof Error ? err.message : 'Unable to connect to consultation session.';
       this.updateState({
         status: 'error',
-        connectionStatus: 'error',
+        connectionStatus: 'disconnected',
         errorMessage: message,
       });
       return;
@@ -135,6 +137,23 @@ export class ConsultationAdapter implements IConsultationAdapter {
     this.startPresencePolling(sessionId, token);
   }
 
+  private mapParticipantConnectionStatus(
+    participant: ParticipantResponse | undefined
+  ): ConnectionStatus {
+    if (!participant) {
+      return 'waiting';
+    }
+    // Match backend actual values: 'connected' | 'connecting' | 'disconnected'
+    // An absent participant is 'waiting'. An existing participant who is disconnected must NOT be shown as waiting.
+    if (participant.connection_status === 'connected') {
+      return 'connected';
+    }
+    if (participant.connection_status === 'connecting') {
+      return 'connecting';
+    }
+    return 'disconnected';
+  }
+
   private applySessionResponse(sessionData: SessionResponse): void {
     const docParticipant = sessionData.participants.find((p) => p.role === 'doctor');
     const patParticipant = sessionData.participants.find((p) => p.role === 'patient');
@@ -144,23 +163,15 @@ export class ConsultationAdapter implements IConsultationAdapter {
       doctor: {
         participantId: docParticipant?.participant_id || '',
         role: 'doctor',
-        connectionStatus:
-          docParticipant?.connection_status === 'connected'
-            ? 'connected'
-            : docParticipant?.connection_status === 'reconnecting'
-            ? 'reconnecting'
-            : 'waiting',
+        connectionStatus: this.mapParticipantConnectionStatus(docParticipant),
+        microphoneStatus: docParticipant?.microphone_status || 'unknown',
         isMuted: docParticipant?.microphone_status === 'muted',
       },
       patient: {
         participantId: patParticipant?.participant_id || '',
         role: 'patient',
-        connectionStatus:
-          patParticipant?.connection_status === 'connected'
-            ? 'connected'
-            : patParticipant?.connection_status === 'reconnecting'
-            ? 'reconnecting'
-            : 'waiting',
+        connectionStatus: this.mapParticipantConnectionStatus(patParticipant),
+        microphoneStatus: patParticipant?.microphone_status || 'unknown',
         isMuted: patParticipant?.microphone_status === 'muted',
       },
     });
@@ -191,7 +202,7 @@ export class ConsultationAdapter implements IConsultationAdapter {
       this.ws.onerror = () => {
         if (this.isDestroyed) return;
         this.updateState({
-          connectionStatus: 'error',
+          connectionStatus: 'disconnected',
           errorMessage: 'WebSocket transport connection failed.',
         });
       };
@@ -205,7 +216,7 @@ export class ConsultationAdapter implements IConsultationAdapter {
     } catch {
       if (!this.isDestroyed) {
         this.updateState({
-          connectionStatus: 'error',
+          connectionStatus: 'disconnected',
           errorMessage: 'Failed to establish WebSocket connection.',
         });
       }
@@ -256,26 +267,40 @@ export class ConsultationAdapter implements IConsultationAdapter {
 
   /**
    * Doctor ends consultation via backend POST /api/sessions/{id}/end.
+   * Only marks ended and disconnects after the backend confirms the end request.
    */
   public async endConsultation(): Promise<void> {
     if (this.isDestroyed) return;
-    this.stopPresencePolling();
 
-    if (this.token && this.role === 'doctor') {
-      try {
-        await sessionApi.endSession(this.state.sessionId, this.token);
-      } catch {
-        // Ignore network errors during session termination
-      }
+    if (!this.token || this.role !== 'doctor') {
+      const err = new Error('Only the doctor with an issued access token can end the consultation.');
+      this.updateState({ errorMessage: err.message });
+      throw err;
     }
 
-    this.disconnect();
-    this.updateState({
-      status: 'ended',
-      connectionStatus: 'disconnected',
-      activityState: 'idle',
-      currentTurn: null,
-    });
+    try {
+      const endResponse = await sessionApi.endSession(this.state.sessionId, this.token);
+      // Confirmed by backend
+      this.stopPresencePolling();
+      this.disconnect();
+      this.updateState({
+        status: endResponse.status || 'ended',
+        connectionStatus: 'disconnected',
+        activityState: 'idle',
+        currentTurn: null,
+        errorMessage: null,
+      });
+    } catch (err: unknown) {
+      // On failure, preserve active session status and connection; do not disconnect
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Failed to end consultation on server. Please try again.';
+      this.updateState({
+        errorMessage: message,
+      });
+      throw err;
+    }
   }
 
   /**

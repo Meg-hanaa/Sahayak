@@ -85,11 +85,20 @@ export const DoctorConsultationPage: React.FC = () => {
             </div>
           ) : (
             <>
-              {/* Patient Waiting Banner if not connected */}
+              {/* Patient Waiting Banner if not joined */}
               {session.patient.connectionStatus === 'waiting' && (
                 <div className="sahayak-doctor-room__waiting-banner" role="status">
                   <span className="sahayak-doctor-room__waiting-text">
-                    Patient has not joined the consultation yet. Audio interpretation will begin when the patient connects.
+                    Patient has not joined the consultation yet. The session will update when the patient connects.
+                  </span>
+                </div>
+              )}
+
+              {/* Patient Disconnected Banner */}
+              {session.patient.connectionStatus === 'disconnected' && (
+                <div className="sahayak-doctor-room__waiting-banner sahayak-doctor-room__waiting-banner--disconnected" role="status">
+                  <span className="sahayak-doctor-room__waiting-text">
+                    Patient is currently disconnected. Reconnecting...
                   </span>
                 </div>
               )}

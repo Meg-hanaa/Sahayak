@@ -1,13 +1,17 @@
 /**
  * Backend Session Lifecycle API Client
  * Verified against FastAPI routes in backend/sahayak/api/sessions.py
+ * and domain models in backend/sahayak/domain/enums.py
  */
+
+export type BackendConnectionStatus = 'connected' | 'connecting' | 'disconnected';
+export type BackendMicrophoneStatus = 'unknown' | 'granted' | 'blocked' | 'muted';
 
 export interface ParticipantResponse {
   participant_id: string;
   role: 'doctor' | 'patient';
-  connection_status: 'connected' | 'disconnected' | 'reconnecting';
-  microphone_status: 'active' | 'muted' | 'unsupported' | 'denied' | 'unknown';
+  connection_status: BackendConnectionStatus;
+  microphone_status: BackendMicrophoneStatus;
 }
 
 export interface SessionResponse {
@@ -37,7 +41,7 @@ export interface CreateSessionResponse {
 export interface JoinSessionRequest {
   token: string;
   role?: 'doctor' | 'patient';
-  microphone_status?: 'active' | 'muted' | 'unsupported' | 'denied' | 'unknown';
+  microphone_status?: BackendMicrophoneStatus;
 }
 
 export interface JoinSessionResponse {

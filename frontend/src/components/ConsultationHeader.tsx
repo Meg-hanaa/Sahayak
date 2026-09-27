@@ -41,11 +41,14 @@ export const ConsultationHeader: React.FC<ConsultationHeaderProps> = ({
     if (sessionStatus === 'paused') {
       return isDoctor ? 'Paused' : 'रुका हुआ';
     }
-    if (participantConnectionStatus === 'reconnecting') {
-      return isDoctor ? 'Reconnecting...' : 'पुनः कनेक्ट किया जा रहा है...';
+    if (participantConnectionStatus === 'connecting') {
+      return isDoctor ? 'Connecting...' : 'कनेक्ट किया जा रहा है...';
     }
     if (participantConnectionStatus === 'waiting') {
       return isDoctor ? 'Waiting' : 'प्रतीक्षा में';
+    }
+    if (participantConnectionStatus === 'disconnected') {
+      return isDoctor ? 'Disconnected' : 'डिस्कनेक्ट';
     }
     return isDoctor ? 'Active' : 'सक्रिय';
   };
@@ -53,11 +56,13 @@ export const ConsultationHeader: React.FC<ConsultationHeaderProps> = ({
   const getOtherParticipantLabel = (): string => {
     if (isDoctor) {
       if (participantConnectionStatus === 'connected') return 'Patient connected';
-      if (participantConnectionStatus === 'reconnecting') return 'Patient reconnecting...';
+      if (participantConnectionStatus === 'connecting') return 'Patient connecting...';
+      if (participantConnectionStatus === 'disconnected') return 'Patient disconnected';
       return 'Patient waiting to join';
     } else {
       if (participantConnectionStatus === 'connected') return 'डॉक्टर जुड़े हुए हैं';
-      if (participantConnectionStatus === 'reconnecting') return 'डॉक्टर पुनः कनेक्ट हो रहे हैं...';
+      if (participantConnectionStatus === 'connecting') return 'डॉक्टर कनेक्ट हो रहे हैं...';
+      if (participantConnectionStatus === 'disconnected') return 'डॉक्टर डिस्कनेक्ट हो गए हैं';
       return 'डॉक्टर की प्रतीक्षा है';
     }
   };

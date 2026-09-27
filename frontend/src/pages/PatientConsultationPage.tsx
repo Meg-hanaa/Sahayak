@@ -85,7 +85,16 @@ export const PatientConsultationPage: React.FC = () => {
               {session.doctor.connectionStatus === 'waiting' && (
                 <div className="sahayak-patient-room__waiting-banner" role="status">
                   <span className="sahayak-patient-room__waiting-text">
-                    डॉक्टर की प्रतीक्षा की जा रही है। डॉक्टर के जुड़ते ही अनुवाद शुरू हो जाएगा।
+                    डॉक्टर की प्रतीक्षा की जा रही है। डॉक्टर के जुड़ते ही सत्र अपडेट हो जाएगा।
+                  </span>
+                </div>
+              )}
+
+              {/* Doctor Disconnected Banner */}
+              {session.doctor.connectionStatus === 'disconnected' && (
+                <div className="sahayak-patient-room__waiting-banner sahayak-patient-room__waiting-banner--disconnected" role="status">
+                  <span className="sahayak-patient-room__waiting-text">
+                    डॉक्टर डिस्कनेक्ट हो गए हैं। पुनः कनेक्ट करने का प्रयास किया जा रहा है...
                   </span>
                 </div>
               )}
