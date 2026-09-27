@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Container } from './Container';
 import {
@@ -31,32 +31,8 @@ export const ConsultationHeader: React.FC<ConsultationHeaderProps> = ({
   isFixture,
   fixtureNotice,
   onEndClick,
-  errorMessage,
 }) => {
   const isDoctor = role === 'doctor';
-  const [isEnding, setIsEnding] = useState(false);
-  const [localEndError, setLocalEndError] = useState<string | null>(null);
-
-  const displayError = localEndError || (sessionStatus !== 'ended' ? errorMessage : null);
-
-  const handleEnd = async () => {
-    if (!onEndClick || isEnding) return;
-    setIsEnding(true);
-    setLocalEndError(null);
-    try {
-      await onEndClick();
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : isDoctor
-          ? 'Failed to end consultation. Please try again.'
-          : 'परामर्श समाप्त करने में विफल। पुनः प्रयास करें।';
-      setLocalEndError(msg);
-    } finally {
-      setIsEnding(false);
-    }
-  };
 
   // Localized status labels
   const getSessionStatusLabel = (): string => {
@@ -139,24 +115,14 @@ export const ConsultationHeader: React.FC<ConsultationHeaderProps> = ({
               <button
                 type="button"
                 className="sahayak-consult-header__end-btn"
-                onClick={handleEnd}
-                disabled={isEnding}
-                aria-busy={isEnding}
+                onClick={onEndClick}
+                aria-label={isDoctor ? 'End consultation' : 'परामर्श छोड़ें'}
               >
-                {isEnding
-                  ? (isDoctor ? 'Ending...' : 'समाप्त किया जा रहा है...')
-                  : (isDoctor ? 'End consultation' : 'परामर्श छोड़ें')}
+                {isDoctor ? 'End consultation' : 'परामर्श छोड़ें'}
               </button>
             )}
           </div>
         </div>
-
-        {/* End Consultation Error Banner */}
-        {displayError && (
-          <div className="sahayak-consult-header__error-banner" role="alert">
-            <span className="sahayak-consult-header__error-text">{displayError}</span>
-          </div>
-        )}
 
         {/* Fixture Notice - Clearly distinct, never pretending to be real */}
         {isFixture && fixtureNotice && (

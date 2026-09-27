@@ -19,15 +19,11 @@ export const LiveTurnDisplay: React.FC<LiveTurnDisplayProps> = ({
   currentTurn,
   viewerRole,
   isMuted,
-  errorMessage,
 }) => {
   const isDoctor = viewerRole === 'doctor';
 
   // System activity message
   const getActivityMessage = (): string => {
-    if (errorMessage) {
-      return errorMessage;
-    }
     if (isMuted) {
       return isDoctor
         ? 'Microphone is muted. Unmute to speak.'

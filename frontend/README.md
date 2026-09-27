@@ -35,6 +35,13 @@ This package contains the React 19, Vite, and TypeScript frontend application.
   - Concluded consultation view in Hindi with return navigation.
   - Prominent localized disclaimer: *"प्रोटोटाइप व्याख्या सहायता। नैदानिक ​​निदान या दवा निर्धारण के लिए नहीं।"*
 
+### Phase 5: Consultation Room UX Polish & Responsive Experience
+
+- **Single Error State Architecture**: Consultation termination failures use the session error state as the single source of truth, rendered once in an accessible inline message (`role="alert"`) inside the confirmation modal without duplicate banners in the header, page body, controls bar, or live activity bar.
+- **Resilient Confirmation & Retry Flow**: Asynchronous end/leave actions prevent unhandled promise rejections, preserve active session status on network or server errors, keep the confirmation modal open, and enable direct retry.
+- **Responsive Layout & Content Protection**: Consultation containers maintain safe bottom padding preventing sticky control overlap across 375px, 768px, 1024px, and 1440px viewports. Long session IDs, connection indicators, and Hindi typography wrap without clipping or horizontal overflow.
+- **Accessible Touch & Focus Targets**: All primary interactive elements maintain minimum 44px touch targets with prominent keyboard focus styling.
+
 ---
 
 ## Verified Backend API & WebSocket Contract

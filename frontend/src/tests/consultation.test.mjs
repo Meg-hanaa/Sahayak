@@ -1315,7 +1315,7 @@ async function runConsultationTests() {
       );
     });
 
-    // Doctor clicks "End consultation" button in header
+    // Doctor clicks "End consultation" button in header (which opens confirmation modal)
     const headerEndBtn = Array.from(queryAllByAttr(container, 'type', 'button')).find((b) =>
       b.getAttribute('class')?.includes('sahayak-consult-header__end-btn')
     );
@@ -1325,6 +1325,20 @@ async function runConsultationTests() {
       headerEndBtn.dispatchEvent({ type: 'click' });
     });
 
+    // Confirmation modal is opened
+    const modalDialog = queryByAttr(container, 'role', 'dialog');
+    assert.ok(modalDialog, 'Confirmation modal must open when clicking End consultation');
+
+    const confirmEndBtn = Array.from(queryAllByAttr(container, 'type', 'button')).find((b) =>
+      b.getAttribute('class')?.includes('sahayak-controls__modal-btn--confirm')
+    );
+    assert.ok(confirmEndBtn, 'Modal must render Confirm end consultation button');
+
+    // Doctor clicks "Confirm end consultation" in modal
+    await act(async () => {
+      confirmEndBtn.dispatchEvent({ type: 'click' });
+    });
+
     // Assert NO unhandled promise rejection occurred
     assert.strictEqual(
       unhandledRejections.length,
@@ -1332,34 +1346,49 @@ async function runConsultationTests() {
       'Failed end request must NOT cause unhandled promise rejections'
     );
 
-    // Assert accessible error banner is displayed with role="alert"
+    // Assert EXACTLY ONE accessible error message is displayed with role="alert"
     const alertElements = queryAllByAttr(container, 'role', 'alert');
-    assert.ok(alertElements.length > 0, 'Must render an accessible element with role="alert"');
-    const alertTexts = alertElements.map((el) => getAllText(el)).join(' ');
+    assert.strictEqual(
+      alertElements.length,
+      1,
+      'Failed end request must produce EXACTLY ONE accessible error message with role="alert"'
+    );
+    const alertText = getAllText(alertElements[0]);
     assert.match(
-      alertTexts,
+      alertText,
       /Database failed during consultation termination|Failed to end consultation/,
       'Error message must be accessible in the UI'
     );
+
+    // Assert confirmation modal remains open after failure to allow retry
+    const modalStillOpen = queryByAttr(container, 'role', 'dialog');
+    assert.ok(modalStillOpen, 'Confirmation modal must remain open after failure');
 
     // Assert session is NOT ended in UI
     const currentText = getAllText(container);
     assert.ok(!currentText.includes('Consultation Ended'), 'Session must not be displayed as ended');
     assert.ok(
-      headerEndBtn.getAttribute('disabled') === null || headerEndBtn.getAttribute('disabled') === 'false',
-      'Button must be re-enabled for retry'
+      confirmEndBtn.getAttribute('disabled') === null || confirmEndBtn.getAttribute('disabled') === 'false',
+      'Confirm button must be re-enabled for retry'
     );
 
     // Doctor retries end consultation after backend recovers
     failEndBackend = false;
     await act(async () => {
-      headerEndBtn.dispatchEvent({ type: 'click' });
+      confirmEndBtn.dispatchEvent({ type: 'click' });
     });
 
-    // Assert session is now ended
+    // Assert session is now ended and error is cleared
     const textAfterRetry = getAllText(container);
     assert.match(textAfterRetry, /Consultation Ended/, 'Session transitions to ended after successful retry');
     assert.ok(endCallCount >= 2, 'End request must have been retried');
+
+    const alertElementsAfterRetry = queryAllByAttr(container, 'role', 'alert');
+    assert.strictEqual(
+      alertElementsAfterRetry.length,
+      0,
+      'Accessible alert must be cleared after successful retry'
+    );
 
     await act(async () => {
       rootFailedEnd.unmount();
@@ -1367,7 +1396,7 @@ async function runConsultationTests() {
 
     process.removeListener('unhandledRejection', rejectionHandler);
 
-    console.log('✓ Doctor and patient screens render accurate empty transcripts, peer connection states, and handle failed end requests with accessible retry.');
+    console.log('✓ Doctor and patient screens render accurate empty transcripts, peer connection states, exactly one end error, and handle failed end requests with accessible retry.');
   }
 
   console.log('\n================================================================');

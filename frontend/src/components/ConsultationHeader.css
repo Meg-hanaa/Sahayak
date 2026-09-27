@@ -27,6 +27,7 @@
   color: var(--color-midnight);
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-base);
+  min-height: 44px;
 }
 
 .sahayak-consult-header__brand:focus-visible {
@@ -56,6 +57,8 @@
 .sahayak-consult-header__session-code {
   color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 .sahayak-consult-header__session-code code {
@@ -64,6 +67,8 @@
   padding: 2px 4px;
   border-radius: var(--radius-xs);
   color: var(--color-midnight);
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 .sahayak-consult-header__status-pill {
@@ -99,7 +104,12 @@
   background: transparent;
   border: 1px solid var(--color-ocean);
   border-radius: var(--radius-xs);
-  padding: var(--space-1) var(--space-3);
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-3);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   color: var(--color-midnight);
@@ -130,23 +140,12 @@
   font-weight: var(--font-weight-medium);
 }
 
-.sahayak-consult-header__error-banner {
-  background-color: var(--color-error-bg);
-  border: 1px solid var(--color-error);
-  border-radius: var(--radius-xs);
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-xs);
-  color: var(--color-error);
-}
-
-.sahayak-consult-header__error-text {
-  font-weight: var(--font-weight-medium);
-}
-
 .sahayak-consult-header__disclaimer {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   line-height: var(--line-height-normal);
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 600px) {
@@ -159,5 +158,6 @@
   .sahayak-consult-header__status-group {
     width: 100%;
     justify-content: space-between;
+    gap: var(--space-2);
   }
 }

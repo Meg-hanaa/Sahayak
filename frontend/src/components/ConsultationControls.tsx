@@ -11,6 +11,9 @@ export interface ConsultationControlsProps {
   disabled?: boolean;
   liveAudioAvailable?: boolean;
   errorMessage?: string | null;
+  isOpenConfirmModal?: boolean;
+  onOpenConfirmModal?: () => void;
+  onCloseConfirmModal?: () => void;
 }
 
 export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
@@ -21,21 +24,40 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
   disabled = false,
   liveAudioAvailable = false,
   errorMessage,
+  isOpenConfirmModal,
+  onOpenConfirmModal,
+  onCloseConfirmModal,
 }) => {
   const isDoctor = viewerRole === 'doctor';
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [localShowConfirmModal, setLocalShowConfirmModal] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
-  const [localEndError, setLocalEndError] = useState<string | null>(null);
   const cancelBtnRef = useRef<HTMLButtonElement>(null);
 
-  const displayError = localEndError || errorMessage;
+  const showConfirmModal =
+    isOpenConfirmModal !== undefined ? isOpenConfirmModal : localShowConfirmModal;
+
+  const handleOpenModal = () => {
+    if (onOpenConfirmModal) {
+      onOpenConfirmModal();
+    } else {
+      setLocalShowConfirmModal(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    if (onCloseConfirmModal) {
+      onCloseConfirmModal();
+    } else {
+      setLocalShowConfirmModal(false);
+    }
+  };
 
   // Close modal on Escape key
   useEffect(() => {
     if (!showConfirmModal) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !isEnding) {
-        setShowConfirmModal(false);
+        handleCloseModal();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -46,18 +68,12 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
   const handleConfirmEnd = async () => {
     if (isEnding) return;
     setIsEnding(true);
-    setLocalEndError(null);
     try {
       await onEndConsultation();
-      setShowConfirmModal(false);
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : isDoctor
-          ? 'Failed to end consultation. Please try again.'
-          : 'परामर्श समाप्त करने में विफल। पुनः प्रयास करें।';
-      setLocalEndError(msg);
+      handleCloseModal();
+    } catch {
+      // Intentionally caught: session.errorMessage is the single source of truth.
+      // Keep confirmation modal open after failure to allow retry without unhandled rejection.
     } finally {
       setIsEnding(false);
     }
@@ -124,7 +140,7 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
           <button
             type="button"
             className="sahayak-controls__btn sahayak-controls__btn--end"
-            onClick={() => setShowConfirmModal(true)}
+            onClick={handleOpenModal}
             disabled={disabled}
             aria-label={isDoctor ? 'End consultation' : 'परामर्श छोड़ें'}
           >
@@ -134,20 +150,13 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
             </span>
           </button>
         </div>
-
-        {/* Action Error Bar if modal is closed */}
-        {displayError && !showConfirmModal && (
-          <div className="sahayak-controls__error-bar" role="alert">
-            <span className="sahayak-controls__error-text">{displayError}</span>
-          </div>
-        )}
       </div>
 
       {/* Confirmation Modal */}
       {showConfirmModal && (
         <div
           className="sahayak-controls__modal-backdrop"
-          onClick={() => setShowConfirmModal(false)}
+          onClick={isEnding ? undefined : handleCloseModal}
         >
           <div
             className="sahayak-controls__modal"
@@ -167,9 +176,9 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
             </p>
 
             {/* Error in modal if end request failed */}
-            {displayError && (
+            {errorMessage && (
               <div className="sahayak-controls__modal-error" role="alert">
-                {displayError}
+                {errorMessage}
               </div>
             )}
 
@@ -178,11 +187,7 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
                 ref={cancelBtnRef}
                 type="button"
                 className="sahayak-controls__modal-btn sahayak-controls__modal-btn--cancel"
-                onClick={() => {
-                  if (isEnding) return;
-                  setShowConfirmModal(false);
-                  setLocalEndError(null);
-                }}
+                onClick={handleCloseModal}
                 disabled={isEnding}
               >
                 {isDoctor ? 'Cancel' : 'रद्द करें'}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Container } from '../components/Container';
 import { ConsultationHeader } from '../components/ConsultationHeader';
@@ -11,6 +11,7 @@ import './DoctorConsultationPage.css';
 
 export const DoctorConsultationPage: React.FC = () => {
   const { sessionId = 'demo-session' } = useParams<{ sessionId: string }>();
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
   // Retrieve token from sessionStorage or query param
   const token =
@@ -37,8 +38,7 @@ export const DoctorConsultationPage: React.FC = () => {
         participantConnectionStatus={session.patient.connectionStatus}
         isFixture={session.isFixture}
         fixtureNotice={session.fixtureNotice}
-        onEndClick={!isEnded && !isError ? session.endConsultation : undefined}
-        errorMessage={session.errorMessage}
+        onEndClick={!isEnded && !isError ? () => setIsConfirmModalOpen(true) : undefined}
       />
 
       <main id="main-content" className="sahayak-doctor-room__main">
@@ -86,15 +86,6 @@ export const DoctorConsultationPage: React.FC = () => {
             </div>
           ) : (
             <>
-              {/* Action Error Banner e.g. when ending session fails */}
-              {session.errorMessage && (
-                <div className="sahayak-doctor-room__action-error-banner" role="alert">
-                  <span className="sahayak-doctor-room__action-error-text">
-                    {session.errorMessage}
-                  </span>
-                </div>
-              )}
-
               {/* Patient Waiting Banner if not joined */}
               {session.patient.connectionStatus === 'waiting' && (
                 <div className="sahayak-doctor-room__waiting-banner" role="status">
@@ -119,7 +110,6 @@ export const DoctorConsultationPage: React.FC = () => {
                 currentTurn={session.currentTurn}
                 viewerRole="doctor"
                 isMuted={session.isMuted}
-                errorMessage={session.errorMessage}
               />
 
               {/* Full Bilingual Transcript */}
@@ -141,6 +131,9 @@ export const DoctorConsultationPage: React.FC = () => {
           onEndConsultation={session.endConsultation}
           liveAudioAvailable={session.liveAudioAvailable}
           errorMessage={session.errorMessage}
+          isOpenConfirmModal={isConfirmModalOpen}
+          onOpenConfirmModal={() => setIsConfirmModalOpen(true)}
+          onCloseConfirmModal={() => setIsConfirmModalOpen(false)}
         />
       )}
     </div>
