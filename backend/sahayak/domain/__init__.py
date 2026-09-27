@@ -20,6 +20,11 @@ from sahayak.domain.models import (
     Turn,
     VerifiedFact,
 )
+from sahayak.domain.safety import (
+    CriticalFact,
+    CriticalFactCategory,
+    SafetyRuleId,
+)
 from sahayak.domain.translation import (
     TranslationResult,
     TranslationStatus,
@@ -32,12 +37,15 @@ __all__ = [
     "Confirmation",
     "ConfirmationOutcome",
     "ConnectionStatus",
+    "CriticalFact",
+    "CriticalFactCategory",
     "LanguageCode",
     "MicrophoneStatus",
     "Participant",
     "ParticipantRole",
     "ProcessingStatus",
     "RiskAssessment",
+    "SafetyRuleId",
     "SafetyState",
     "Session",
     "SessionRecord",

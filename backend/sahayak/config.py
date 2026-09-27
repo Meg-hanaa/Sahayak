@@ -92,6 +92,20 @@ class Settings(BaseSettings):
         gt=0,
         validation_alias=AliasChoices("ASSEMBLYAI_STREAM_TIMEOUT_SECONDS", "SAHAYAK_ASSEMBLYAI_STREAM_TIMEOUT_SECONDS"),
     )
+    safety_min_confidence: float = Field(
+        default=0.75,
+        ge=0.0,
+        le=1.0,
+        validation_alias=AliasChoices("SAFETY_MIN_CONFIDENCE", "SAHAYAK_SAFETY_MIN_CONFIDENCE"),
+    )
+    safety_require_confidence: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("SAFETY_REQUIRE_CONFIDENCE", "SAHAYAK_SAFETY_REQUIRE_CONFIDENCE"),
+    )
+    safety_glossary_path: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("SAFETY_GLOSSARY_PATH", "SAHAYAK_SAFETY_GLOSSARY_PATH"),
+    )
 
     @field_validator("log_level")
     @classmethod

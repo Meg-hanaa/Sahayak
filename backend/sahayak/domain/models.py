@@ -17,6 +17,7 @@ from sahayak.domain.enums import (
     SafetyState,
     SessionStatus,
 )
+from sahayak.domain.safety import CriticalFact
 
 
 class Participant(BaseModel):
@@ -62,6 +63,7 @@ class RiskAssessment(BaseModel):
     safety_state: SafetyState
     rule_id: str | None = None
     reason: str | None = None
+    facts: list[CriticalFact] = Field(default_factory=list)
 
 
 class Confirmation(BaseModel):
