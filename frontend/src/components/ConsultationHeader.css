@@ -130,6 +130,19 @@
   font-weight: var(--font-weight-medium);
 }
 
+.sahayak-consult-header__error-banner {
+  background-color: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-xs);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-error);
+}
+
+.sahayak-consult-header__error-text {
+  font-weight: var(--font-weight-medium);
+}
+
 .sahayak-consult-header__disclaimer {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);

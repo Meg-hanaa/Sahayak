@@ -151,6 +151,32 @@
   background-color: #8E001A;
 }
 
+.sahayak-controls__modal-error {
+  background-color: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-xs);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  font-weight: var(--font-weight-medium);
+}
+
+.sahayak-controls__error-bar {
+  margin-top: var(--space-2);
+  text-align: center;
+  background-color: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-xs);
+  padding: var(--space-1) var(--space-3);
+}
+
+.sahayak-controls__error-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-error);
+  font-weight: var(--font-weight-medium);
+}
+
 @media (max-width: 480px) {
   .sahayak-controls__inner {
     width: 100%;

@@ -724,7 +724,15 @@ async function runConsultationTests() {
           null,
           React.createElement(
             MemoryRouter,
-            { initialEntries: ['/join/pat-sess-701?token=token-pat-999'] },
+            {
+              initialEntries: [
+                {
+                  pathname: '/join/pat-sess-701',
+                  search: '?token=token-pat-999',
+                  state: { source: 'patient_invite', referrer: 'clinic_sms' },
+                },
+              ],
+            },
             React.createElement(
               Routes,
               null,
@@ -747,7 +755,7 @@ async function runConsultationTests() {
       );
     });
 
-    // Verify token stored in sessionStorage and stripped from router location via replace navigation
+    // Verify token stored in sessionStorage and stripped from router location via replace navigation while retaining state
     assert.strictEqual(
       mockSessionStorage.getItem('sahayak_token_pat-sess-701'),
       'token-pat-999',
@@ -763,6 +771,11 @@ async function runConsultationTests() {
       patientLocation.search,
       '',
       'Router search must be stripped of token query param'
+    );
+    assert.deepStrictEqual(
+      patientLocation.state,
+      { source: 'patient_invite', referrer: 'clinic_sms' },
+      'Router location.state must be preserved across replace navigation'
     );
 
     // Find and click "सत्र में शामिल हों" (Join session)
@@ -1233,7 +1246,128 @@ async function runConsultationTests() {
       rootPatDisconn.unmount();
     });
 
-    console.log('✓ Doctor and patient screens render accurate empty transcripts, disabled mute controls, and peer connection states (waiting vs disconnected).');
+    // 6H: UI-level test for failed end request (handles error, keeps message accessible, avoids unhandled rejections, lets doctor retry)
+    mockSessionStorage.setItem('sahayak_token_med-ui-804', 'token-ui-doc-4');
+    let failEndBackend = true;
+    let endCallCount = 0;
+    const unhandledRejections = [];
+    const rejectionHandler = (reason) => {
+      unhandledRejections.push(reason);
+    };
+    process.on('unhandledRejection', rejectionHandler);
+
+    globalThis.fetch = async (url, options = {}) => {
+      const strUrl = String(url);
+      if (strUrl.endsWith('/end') && options.method === 'POST') {
+        endCallCount++;
+        if (failEndBackend) {
+          return {
+            ok: false,
+            status: 500,
+            json: async () => ({
+              error: { code: 'server_error', message: 'Database failed during consultation termination' },
+            }),
+          };
+        }
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ session_id: 'med-ui-804', status: 'ended' }),
+        };
+      }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          session_id: 'med-ui-804',
+          status: 'active',
+          created_at: '2026-09-27T10:00:00Z',
+          doctor_language: 'en',
+          patient_language: 'hi',
+          retention_expires_at: '2026-09-27T10:30:00Z',
+          participants: [
+            { participant_id: 'doc-ui', role: 'doctor', connection_status: 'connected', microphone_status: 'granted' },
+            { participant_id: 'pat-ui', role: 'patient', connection_status: 'connected', microphone_status: 'granted' },
+          ],
+        }),
+      };
+    };
+
+    const rootFailedEnd = createRoot(container);
+    await act(async () => {
+      rootFailedEnd.render(
+        React.createElement(
+          StrictMode,
+          null,
+          React.createElement(
+            MemoryRouter,
+            { initialEntries: ['/doctor/med-ui-804'] },
+            React.createElement(
+              Routes,
+              null,
+              React.createElement(Route, {
+                path: '/doctor/:sessionId',
+                element: React.createElement(DoctorConsultationPage),
+              })
+            )
+          )
+        )
+      );
+    });
+
+    // Doctor clicks "End consultation" button in header
+    const headerEndBtn = Array.from(queryAllByAttr(container, 'type', 'button')).find((b) =>
+      b.getAttribute('class')?.includes('sahayak-consult-header__end-btn')
+    );
+    assert.ok(headerEndBtn, 'Header must render End consultation button');
+
+    await act(async () => {
+      headerEndBtn.dispatchEvent({ type: 'click' });
+    });
+
+    // Assert NO unhandled promise rejection occurred
+    assert.strictEqual(
+      unhandledRejections.length,
+      0,
+      'Failed end request must NOT cause unhandled promise rejections'
+    );
+
+    // Assert accessible error banner is displayed with role="alert"
+    const alertElements = queryAllByAttr(container, 'role', 'alert');
+    assert.ok(alertElements.length > 0, 'Must render an accessible element with role="alert"');
+    const alertTexts = alertElements.map((el) => getAllText(el)).join(' ');
+    assert.match(
+      alertTexts,
+      /Database failed during consultation termination|Failed to end consultation/,
+      'Error message must be accessible in the UI'
+    );
+
+    // Assert session is NOT ended in UI
+    const currentText = getAllText(container);
+    assert.ok(!currentText.includes('Consultation Ended'), 'Session must not be displayed as ended');
+    assert.ok(
+      headerEndBtn.getAttribute('disabled') === null || headerEndBtn.getAttribute('disabled') === 'false',
+      'Button must be re-enabled for retry'
+    );
+
+    // Doctor retries end consultation after backend recovers
+    failEndBackend = false;
+    await act(async () => {
+      headerEndBtn.dispatchEvent({ type: 'click' });
+    });
+
+    // Assert session is now ended
+    const textAfterRetry = getAllText(container);
+    assert.match(textAfterRetry, /Consultation Ended/, 'Session transitions to ended after successful retry');
+    assert.ok(endCallCount >= 2, 'End request must have been retried');
+
+    await act(async () => {
+      rootFailedEnd.unmount();
+    });
+
+    process.removeListener('unhandledRejection', rejectionHandler);
+
+    console.log('✓ Doctor and patient screens render accurate empty transcripts, peer connection states, and handle failed end requests with accessible retry.');
   }
 
   console.log('\n================================================================');

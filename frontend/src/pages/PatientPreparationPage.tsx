@@ -39,11 +39,14 @@ export const PatientPreparationPage: React.FC = () => {
       resolvedToken = urlToken;
       // Retain token strictly in sessionStorage for this browser session
       setSessionToken(sessionId, urlToken);
-      // Remove token from visible browser URL bar using React Router replace navigation
-      navigate(`/join/${sessionId}`, { replace: true });
+      searchParams.delete('token');
+      const remainingSearch = searchParams.toString();
+      const targetPath = remainingSearch ? `/join/${sessionId}?${remainingSearch}` : `/join/${sessionId}`;
+      // Remove token from visible browser URL bar using React Router replace navigation while preserving location.state
+      navigate(targetPath, { replace: true, state: location.state });
     }
     setToken(resolvedToken);
-  }, [sessionId, location.search, navigate]);
+  }, [sessionId, location.search, location.state, navigate]);
 
   // Mutual exclusion: Prevent speaker test from bleeding into mic test or vice versa
   const isMicBusy = mic.status === 'requesting' || mic.status === 'listening';

@@ -26,6 +26,20 @@
   font-weight: var(--font-weight-medium);
 }
 
+.sahayak-doctor-room__action-error-banner {
+  background-color: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.sahayak-doctor-room__action-error-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  font-weight: var(--font-weight-medium);
+}
+
 .sahayak-doctor-room__ended-card {
   background-color: var(--color-snow);
   border: 1px solid var(--color-border-subtle);

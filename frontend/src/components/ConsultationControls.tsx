@@ -7,9 +7,10 @@ export interface ConsultationControlsProps {
   viewerRole: ParticipantRole;
   isMuted: boolean;
   onToggleMute: () => void;
-  onEndConsultation: () => void;
+  onEndConsultation: () => void | Promise<void>;
   disabled?: boolean;
   liveAudioAvailable?: boolean;
+  errorMessage?: string | null;
 }
 
 export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
@@ -19,27 +20,47 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
   onEndConsultation,
   disabled = false,
   liveAudioAvailable = false,
+  errorMessage,
 }) => {
   const isDoctor = viewerRole === 'doctor';
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isEnding, setIsEnding] = useState(false);
+  const [localEndError, setLocalEndError] = useState<string | null>(null);
   const cancelBtnRef = useRef<HTMLButtonElement>(null);
+
+  const displayError = localEndError || errorMessage;
 
   // Close modal on Escape key
   useEffect(() => {
     if (!showConfirmModal) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && !isEnding) {
         setShowConfirmModal(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     cancelBtnRef.current?.focus();
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showConfirmModal]);
+  }, [showConfirmModal, isEnding]);
 
-  const handleConfirmEnd = () => {
-    setShowConfirmModal(false);
-    onEndConsultation();
+  const handleConfirmEnd = async () => {
+    if (isEnding) return;
+    setIsEnding(true);
+    setLocalEndError(null);
+    try {
+      await onEndConsultation();
+      setShowConfirmModal(false);
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : isDoctor
+          ? 'Failed to end consultation. Please try again.'
+          : 'परामर्श समाप्त करने में विफल। पुनः प्रयास करें।';
+      setLocalEndError(msg);
+    } finally {
+      setIsEnding(false);
+    }
   };
 
   const isMuteDisabled = disabled || !liveAudioAvailable;
@@ -113,6 +134,13 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
             </span>
           </button>
         </div>
+
+        {/* Action Error Bar if modal is closed */}
+        {displayError && !showConfirmModal && (
+          <div className="sahayak-controls__error-bar" role="alert">
+            <span className="sahayak-controls__error-text">{displayError}</span>
+          </div>
+        )}
       </div>
 
       {/* Confirmation Modal */}
@@ -137,12 +165,25 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
                 ? 'This will conclude the consultation for all participants and close connection streams.'
                 : 'क्या आप परामर्श छोड़ना चाहते हैं? आप इस परामर्श से बाहर आ जाएंगे, जबकि डॉक्टर का सत्र जारी रह सकता है।'}
             </p>
+
+            {/* Error in modal if end request failed */}
+            {displayError && (
+              <div className="sahayak-controls__modal-error" role="alert">
+                {displayError}
+              </div>
+            )}
+
             <div className="sahayak-controls__modal-actions">
               <button
                 ref={cancelBtnRef}
                 type="button"
                 className="sahayak-controls__modal-btn sahayak-controls__modal-btn--cancel"
-                onClick={() => setShowConfirmModal(false)}
+                onClick={() => {
+                  if (isEnding) return;
+                  setShowConfirmModal(false);
+                  setLocalEndError(null);
+                }}
+                disabled={isEnding}
               >
                 {isDoctor ? 'Cancel' : 'रद्द करें'}
               </button>
@@ -150,8 +191,12 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
                 type="button"
                 className="sahayak-controls__modal-btn sahayak-controls__modal-btn--confirm"
                 onClick={handleConfirmEnd}
+                disabled={isEnding}
+                aria-busy={isEnding}
               >
-                {isDoctor ? 'Confirm end consultation' : 'हाँ, परामर्श छोड़ें'}
+                {isEnding
+                  ? (isDoctor ? 'Ending...' : 'समाप्त किया जा रहा है...')
+                  : (isDoctor ? 'Confirm end consultation' : 'हाँ, परामर्श छोड़ें')}
               </button>
             </div>
           </div>

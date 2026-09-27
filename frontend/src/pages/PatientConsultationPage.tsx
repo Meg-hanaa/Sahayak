@@ -38,6 +38,7 @@ export const PatientConsultationPage: React.FC = () => {
         isFixture={session.isFixture}
         fixtureNotice={session.fixtureNotice}
         onEndClick={!isEnded && !isError ? session.leaveConsultation : undefined}
+        errorMessage={session.errorMessage}
       />
 
       <main id="main-content" className="sahayak-patient-room__main">
@@ -81,6 +82,15 @@ export const PatientConsultationPage: React.FC = () => {
             </div>
           ) : (
             <>
+              {/* Action Error Banner e.g. when leaving session fails */}
+              {session.errorMessage && (
+                <div className="sahayak-patient-room__action-error-banner" role="alert">
+                  <span className="sahayak-patient-room__action-error-text">
+                    {session.errorMessage}
+                  </span>
+                </div>
+              )}
+
               {/* Doctor Waiting Banner */}
               {session.doctor.connectionStatus === 'waiting' && (
                 <div className="sahayak-patient-room__waiting-banner" role="status">
@@ -126,6 +136,7 @@ export const PatientConsultationPage: React.FC = () => {
           onToggleMute={handleToggleMute}
           onEndConsultation={session.leaveConsultation}
           liveAudioAvailable={session.liveAudioAvailable}
+          errorMessage={session.errorMessage}
         />
       )}
     </div>
