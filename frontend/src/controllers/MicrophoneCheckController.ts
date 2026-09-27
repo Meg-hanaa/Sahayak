@@ -69,6 +69,9 @@ export class MicrophoneCheckController {
   }
 
   public subscribe(listener: (state: MicrophoneCheckState) => void): () => void {
+    if (this.isDestroyed) {
+      return () => {};
+    }
     this.listeners.add(listener);
     return () => {
       this.listeners.delete(listener);
@@ -82,6 +85,9 @@ export class MicrophoneCheckController {
   }
 
   private updateState(partial: Partial<MicrophoneCheckState>) {
+    if (this.isDestroyed) {
+      return;
+    }
     this.state = { ...this.state, ...partial };
     this.notify();
   }

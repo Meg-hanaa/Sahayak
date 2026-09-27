@@ -55,6 +55,9 @@ export class SpeakerCheckController {
   }
 
   public subscribe(listener: (state: SpeakerCheckState) => void): () => void {
+    if (this.isDestroyed) {
+      return () => {};
+    }
     this.listeners.add(listener);
     return () => {
       this.listeners.delete(listener);
@@ -68,6 +71,9 @@ export class SpeakerCheckController {
   }
 
   private updateState(partial: Partial<SpeakerCheckState>) {
+    if (this.isDestroyed) {
+      return;
+    }
     this.state = { ...this.state, ...partial };
     this.notify();
   }

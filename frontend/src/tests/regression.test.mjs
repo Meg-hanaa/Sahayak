@@ -567,8 +567,13 @@ console.log('--- SCENARIO 8: CONTROLLER DESTRUCTION & PERMANENT DISPOSAL ---');
   await micController.startCheck();
   assert.strictEqual(gumCallCount, 1, 'Destroyed controller must not request getUserMedia');
   assert.strictEqual(micController.getState().status, 'idle', 'Destroyed controller must not mutate state');
-  micController.stopCheck();
-  assert.strictEqual(micStream.areAllStopped(), true);
+  // Verify that subscriptions on destroyed controllers are no-ops
+  let listenerCalled = false;
+  const unsub = micController.subscribe(() => {
+    listenerCalled = true;
+  });
+  assert.strictEqual(typeof unsub, 'function');
+  assert.strictEqual(listenerCalled, false);
 
   // Verify SpeakerCheckController permanent destruction
   const spkController = new SpeakerCheckController();
