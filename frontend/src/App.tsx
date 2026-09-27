@@ -4,9 +4,9 @@ import { HomePage } from './pages/HomePage';
 import { DoctorPreparationPage } from './pages/DoctorPreparationPage';
 import { PatientJoinEntryPage } from './pages/PatientJoinEntryPage';
 import { PatientPreparationPage } from './pages/PatientPreparationPage';
+import { DoctorConsultationPage } from './pages/DoctorConsultationPage';
+import { PatientConsultationPage } from './pages/PatientConsultationPage';
 import {
-  DoctorConsultationPage,
-  PatientConsultationPage,
   ConsultationRecordPage,
   NotFoundPage,
 } from './pages/PlaceholderPage';
@@ -61,7 +61,7 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* Future Phase Consultation Placeholders */}
+      {/* Phase 4 Consultation Room Routes */}
       <Route path="/doctor/:sessionId" element={<DoctorConsultationPage />} />
       <Route path="/patient/:sessionId" element={<PatientConsultationPage />} />
       <Route path="/record/:sessionId" element={<ConsultationRecordPage />} />

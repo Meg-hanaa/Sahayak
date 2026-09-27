@@ -1,0 +1,110 @@
+.sahayak-live-turn {
+  margin-bottom: var(--space-6);
+}
+
+.sahayak-live-turn__status-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-dust);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-midnight);
+  font-weight: var(--font-weight-medium);
+}
+
+.sahayak-live-turn--listening .sahayak-live-turn__status-bar {
+  background-color: var(--color-midnight);
+  color: var(--color-snow);
+  border-color: var(--color-midnight);
+}
+
+.sahayak-live-turn--processing .sahayak-live-turn__status-bar {
+  background-color: var(--color-dust);
+  color: var(--color-midnight);
+  border-color: var(--color-ocean);
+}
+
+.sahayak-live-turn--playing .sahayak-live-turn__status-bar {
+  background-color: var(--color-dust);
+  color: var(--color-midnight);
+  border-color: var(--color-midnight);
+}
+
+.sahayak-live-turn--reconnecting .sahayak-live-turn__status-bar {
+  background-color: var(--color-warning-bg);
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+
+.sahayak-live-turn--error .sahayak-live-turn__status-bar {
+  background-color: var(--color-error-bg);
+  border-color: var(--color-error-border);
+  color: var(--color-error);
+}
+
+.sahayak-live-turn__status-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background-color: currentColor;
+  flex-shrink: 0;
+}
+
+.sahayak-live-turn__status-text {
+  flex: 1;
+}
+
+.sahayak-live-turn__content-card {
+  margin-top: var(--space-3);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  background-color: var(--color-snow);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.sahayak-live-turn__speech-section,
+.sahayak-live-turn__interpretation-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sahayak-live-turn__label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.sahayak-live-turn__text {
+  margin: 0;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-midnight);
+}
+
+.sahayak-live-turn__text--interpreted {
+  font-weight: var(--font-weight-medium);
+}
+
+.sahayak-live-turn__placeholder {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+@media (max-width: 640px) {
+  .sahayak-live-turn__content-card {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}

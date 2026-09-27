@@ -1,0 +1,84 @@
+.sahayak-patient-room {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-surface-base);
+  color: var(--color-midnight);
+  font-family: var(--font-hindi);
+}
+
+.sahayak-patient-room__main {
+  flex: 1;
+  padding-top: var(--space-4);
+  padding-bottom: var(--space-8);
+}
+
+.sahayak-patient-room__waiting-banner {
+  background-color: var(--color-dust);
+  border: 1px solid var(--color-ocean);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.sahayak-patient-room__waiting-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-midnight);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-relaxed);
+}
+
+.sahayak-patient-room__ended-card {
+  background-color: var(--color-snow);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8) var(--space-6);
+  text-align: center;
+  max-width: 500px;
+  margin: var(--space-6) auto;
+  box-shadow: var(--shadow-card);
+}
+
+.sahayak-patient-room__ended-title {
+  margin: 0 0 var(--space-3) 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-midnight);
+  line-height: var(--line-height-normal);
+}
+
+.sahayak-patient-room__ended-desc {
+  margin: 0 0 var(--space-6) 0;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-secondary);
+}
+
+.sahayak-patient-room__ended-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.sahayak-patient-room__link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: var(--space-2) var(--space-6);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  background-color: var(--color-midnight);
+  color: var(--color-snow);
+  transition: background-color var(--transition-fast);
+}
+
+.sahayak-patient-room__link-btn:hover {
+  background-color: var(--color-midnight-hover);
+}
+
+.sahayak-patient-room__link-btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
