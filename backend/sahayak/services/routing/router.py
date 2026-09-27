@@ -91,6 +91,7 @@ class TwoParticipantRouter:
         session_id: UUID,
         source_text: str,
         confidence_data: dict[str, float] | None = None,
+        speech_end_time: datetime | None = None,
     ) -> list[OutboundEvent]:
         """Process Doctor speech (English) and route results.
 
@@ -102,6 +103,7 @@ class TwoParticipantRouter:
             source_text=source_text,
             source_language=LanguageCode.ENGLISH,
             confidence_data=confidence_data,
+            speech_end_time=speech_end_time,
         )
 
         sent_events: list[OutboundEvent] = []
@@ -133,7 +135,7 @@ class TwoParticipantRouter:
                 payload={
                     "prompt_text": turn_result.speech_output,
                     "turn_id": str(turn_result.turn.turn_id),
-                    "category": turn_result.risk_assessment.category,
+                    "category": turn_result.risk_assessment.category if turn_result.risk_assessment else None,
                 },
             )
             await self.send_event(event)
@@ -189,6 +191,7 @@ class TwoParticipantRouter:
         session_id: UUID,
         source_text: str,
         confidence_data: dict[str, float] | None = None,
+        speech_end_time: datetime | None = None,
     ) -> list[OutboundEvent]:
         """Process Patient speech (Hindi) and route results.
 
@@ -201,6 +204,7 @@ class TwoParticipantRouter:
             source_text=source_text,
             source_language=LanguageCode.HINDI,
             confidence_data=confidence_data,
+            speech_end_time=speech_end_time,
         )
 
         sent_events: list[OutboundEvent] = []
@@ -232,7 +236,7 @@ class TwoParticipantRouter:
                 payload={
                     "prompt_text": turn_result.speech_output,
                     "turn_id": str(turn_result.turn.turn_id),
-                    "category": turn_result.risk_assessment.category,
+                    "category": turn_result.risk_assessment.category if turn_result.risk_assessment else None,
                 },
             )
             await self.send_event(event)
@@ -386,5 +390,108 @@ class TwoParticipantRouter:
             )
             await self.send_event(doc_event)
             sent_events.append(doc_event)
+
+        return sent_events
+
+    async def retry_turn(
+        self,
+        turn_id: UUID,
+        speech_end_time: datetime | None = None,
+    ) -> list[OutboundEvent]:
+        """Retry a failed or unresolved turn without restarting the consultation."""
+        turn = self.orchestrator.get_turn(turn_id)
+        if turn is None:
+            return []
+
+        turn_result = await self.orchestrator.retry_turn(turn_id, speech_end_time=speech_end_time)
+        session_id = turn.session_id
+        sent_events: list[OutboundEvent] = []
+
+        if turn.role == ParticipantRole.DOCTOR:
+            if turn_result.decision == AgentDecision.CONTINUE:
+                event = OutboundEvent(
+                    event_type=OutboundEventType.INTERPRETATION,
+                    session_id=session_id,
+                    recipient_role=ParticipantRole.PATIENT,
+                    sender_role=ParticipantRole.DOCTOR,
+                    payload={
+                        "text": turn_result.speech_output,
+                        "source_language": LanguageCode.ENGLISH.value,
+                        "target_language": LanguageCode.HINDI.value,
+                        "turn_id": str(turn_result.turn.turn_id),
+                    },
+                )
+                await self.send_event(event)
+                sent_events.append(event)
+            elif turn_result.decision == AgentDecision.CONFIRM:
+                event = OutboundEvent(
+                    event_type=OutboundEventType.CONFIRMATION_PROMPT,
+                    session_id=session_id,
+                    recipient_role=ParticipantRole.DOCTOR,
+                    sender_role=ParticipantRole.AGENT,
+                    payload={
+                        "prompt_text": turn_result.speech_output,
+                        "turn_id": str(turn_result.turn.turn_id),
+                        "category": turn_result.risk_assessment.category if turn_result.risk_assessment else None,
+                    },
+                )
+                await self.send_event(event)
+                sent_events.append(event)
+            elif turn_result.decision == AgentDecision.REPEAT:
+                event = OutboundEvent(
+                    event_type=OutboundEventType.REPETITION_REQUEST,
+                    session_id=session_id,
+                    recipient_role=ParticipantRole.DOCTOR,
+                    sender_role=ParticipantRole.AGENT,
+                    payload={
+                        "prompt_text": turn_result.speech_output,
+                        "turn_id": str(turn_result.turn.turn_id),
+                    },
+                )
+                await self.send_event(event)
+                sent_events.append(event)
+        else:
+            if turn_result.decision == AgentDecision.CONTINUE:
+                event = OutboundEvent(
+                    event_type=OutboundEventType.INTERPRETATION,
+                    session_id=session_id,
+                    recipient_role=ParticipantRole.DOCTOR,
+                    sender_role=ParticipantRole.PATIENT,
+                    payload={
+                        "text": turn_result.speech_output,
+                        "source_language": LanguageCode.HINDI.value,
+                        "target_language": LanguageCode.ENGLISH.value,
+                        "turn_id": str(turn_result.turn.turn_id),
+                    },
+                )
+                await self.send_event(event)
+                sent_events.append(event)
+            elif turn_result.decision == AgentDecision.CONFIRM:
+                event = OutboundEvent(
+                    event_type=OutboundEventType.CONFIRMATION_PROMPT,
+                    session_id=session_id,
+                    recipient_role=ParticipantRole.PATIENT,
+                    sender_role=ParticipantRole.AGENT,
+                    payload={
+                        "prompt_text": turn_result.speech_output,
+                        "turn_id": str(turn_result.turn.turn_id),
+                        "category": turn_result.risk_assessment.category if turn_result.risk_assessment else None,
+                    },
+                )
+                await self.send_event(event)
+                sent_events.append(event)
+            elif turn_result.decision == AgentDecision.REPEAT:
+                event = OutboundEvent(
+                    event_type=OutboundEventType.REPETITION_REQUEST,
+                    session_id=session_id,
+                    recipient_role=ParticipantRole.PATIENT,
+                    sender_role=ParticipantRole.AGENT,
+                    payload={
+                        "prompt_text": turn_result.speech_output,
+                        "turn_id": str(turn_result.turn.turn_id),
+                    },
+                )
+                await self.send_event(event)
+                sent_events.append(event)
 
         return sent_events

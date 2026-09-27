@@ -28,3 +28,10 @@ class InMemorySessionStore:
 
     def session_ids(self) -> list[UUID]:
         return list(self._sessions.keys())
+
+    def delete_session(self, session_id: UUID) -> None:
+        self._sessions.pop(session_id, None)
+        to_del = [h for h, g in self._grants.items() if g.session_id == session_id]
+        for h in to_del:
+            self._grants.pop(h, None)
+

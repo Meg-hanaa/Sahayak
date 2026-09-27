@@ -65,6 +65,7 @@ def create_app(
     app.state.providers = build_provider_registry(resolved)
 
     from sahayak.services.agent import AgentOrchestrator
+    from sahayak.services.record import SessionRecordService
     from sahayak.services.routing import SessionConnectionManager, TwoParticipantRouter
 
     conn_mgr = SessionConnectionManager()
@@ -73,8 +74,15 @@ def create_app(
         settings=resolved,
         clock=resolved_clock,
     )
+    record_service = SessionRecordService(
+        session_service=app.state.session_service,
+        orchestrator=orchestrator,
+        store=store,
+        clock=resolved_clock,
+    )
     app.state.connection_manager = conn_mgr
     app.state.agent_orchestrator = orchestrator
+    app.state.record_service = record_service
     app.state.router = TwoParticipantRouter(
         connection_manager=conn_mgr,
         orchestrator=orchestrator,

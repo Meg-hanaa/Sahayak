@@ -64,6 +64,11 @@ class Turn(BaseModel):
     confirmation: Confirmation | None = None
     verified_facts: list[VerifiedFact] = Field(default_factory=list)
     speech_output_text: str | None = None
+    speech_end_time: datetime | None = None
+    output_start_time: datetime | None = None
+    latency_ms: float | None = None
+    retry_count: int = 0
+    error_message: str | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -106,6 +111,68 @@ class VerifiedFact(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
+class ConversationTurnRecord(BaseModel):
+    """Preserved conversational turn entry for the final bilingual session record."""
+
+    turn_id: UUID
+    speaker_role: ParticipantRole
+    source_language: LanguageCode
+    target_language: LanguageCode
+    source_text: str
+    translated_text: str | None = None
+    timestamp: datetime
+    processing_status: ProcessingStatus
+    confidence_data: dict[str, float] | None = None
+    safety_state: SafetyState
+    speech_end_time: datetime | None = None
+    output_start_time: datetime | None = None
+    latency_ms: float | None = None
+    retry_count: int = 0
+    error_message: str | None = None
+
+
+class VerifiedFactRecord(BaseModel):
+    """Immutable verified fact preserving source and translated clinical facts."""
+
+    fact_id: UUID = Field(default_factory=uuid4)
+    turn_id: UUID
+    category: str
+    original_source_wording: str
+    translated_wording: str
+    confirmation_reference: UUID
+    verified_at: datetime
+
+    @property
+    def source_wording(self) -> str:
+        return self.original_source_wording
+
+    @property
+    def confirmation_id(self) -> UUID:
+        return self.confirmation_reference
+
+
+class UnresolvedItem(BaseModel):
+    """Unresolved clinical or conversational item preserving original wording and reason."""
+
+    item_id: UUID = Field(default_factory=uuid4)
+    turn_id: UUID
+    source_wording: str
+    category: str | None = None
+    reason: str
+    timestamp: datetime
+
+
+class LatencySummary(BaseModel):
+    """Latency metrics summary for speech-end to output-start."""
+
+    sample_count: int = 0
+    min_seconds: float | None = None
+    max_seconds: float | None = None
+    median_seconds: float | None = None
+    p95_seconds: float | None = None
+    target_met: bool = False
+
+
 class Session(BaseModel):
     """A two-participant English-Hindi consultation session."""
 
@@ -119,10 +186,15 @@ class Session(BaseModel):
 
 
 class SessionRecord(BaseModel):
-    """Bilingual session record skeleton assembled after a consultation ends."""
+    """Comprehensive bilingual session record assembled after a consultation ends."""
 
     session_id: UUID
     ordered_turn_ids: list[UUID] = Field(default_factory=list)
     verified_fact_ids: list[UUID] = Field(default_factory=list)
     unresolved_turn_ids: list[UUID] = Field(default_factory=list)
     generated_at: datetime
+    conversation: list[ConversationTurnRecord] = Field(default_factory=list)
+    verified_facts: list[VerifiedFactRecord] = Field(default_factory=list)
+    unresolved_items: list[UnresolvedItem] = Field(default_factory=list)
+    latency_metrics: LatencySummary | None = None
+

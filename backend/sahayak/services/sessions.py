@@ -113,6 +113,25 @@ class SessionService:
         )
         return session
 
+    def get_session_by_id(self, session_id: UUID) -> Session | None:
+        """Retrieve a session directly by session_id without requiring an access token."""
+        session = self._store.get_session(session_id)
+        if session is not None:
+            self._expire_if_needed(session)
+        return session
+
+    def cleanup_expired_sessions(self) -> int:
+        """Purge sessions that have exceeded their retention expiration."""
+        now = self._clock.now()
+        purged = 0
+        for sid in self._store.session_ids():
+            s = self._store.get_session(sid)
+            if s is not None and s.retention_expires_at is not None and s.retention_expires_at <= now:
+                self._store.delete_session(sid)
+                purged += 1
+        return purged
+
+
     def join_session(
         self,
         session_id: UUID,

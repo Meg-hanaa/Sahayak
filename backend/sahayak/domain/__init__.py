@@ -16,12 +16,16 @@ from sahayak.domain.enums import (
 from sahayak.domain.models import (
     AccessGrant,
     Confirmation,
+    ConversationTurnRecord,
+    LatencySummary,
     Participant,
     RiskAssessment,
     Session,
     SessionRecord,
     Turn,
+    UnresolvedItem,
     VerifiedFact,
+    VerifiedFactRecord,
 )
 from sahayak.domain.safety import (
     CriticalFact,
@@ -46,9 +50,11 @@ __all__ = [
     "Confirmation",
     "ConfirmationOutcome",
     "ConnectionStatus",
+    "ConversationTurnRecord",
     "CriticalFact",
     "CriticalFactCategory",
     "LanguageCode",
+    "LatencySummary",
     "MicrophoneStatus",
     "OutboundEvent",
     "OutboundEventType",
@@ -65,7 +71,9 @@ __all__ = [
     "TranslationStatus",
     "Turn",
     "TurnState",
+    "UnresolvedItem",
     "VerifiedFact",
+    "VerifiedFactRecord",
     "make_failure",
     "make_success",
 ]

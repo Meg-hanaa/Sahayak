@@ -14,6 +14,10 @@ def get_session_service(request: Request) -> SessionService:
     return request.app.state.session_service
 
 
+def get_session_record_service(request: Request) -> Any:
+    return request.app.state.record_service
+
+
 def require_access_token(
     authorization: Annotated[str | None, Header()] = None,
     x_sahayak_access_token: Annotated[str | None, Header(alias="X-Sahayak-Access-Token")] = None,

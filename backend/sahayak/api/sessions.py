@@ -7,7 +7,11 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
 
-from sahayak.api.deps import get_session_service, require_access_token
+from sahayak.api.deps import (
+    get_session_record_service,
+    get_session_service,
+    require_access_token,
+)
 from sahayak.api.errors import InvalidRoleError
 from sahayak.api.schemas import (
     AccessTokenResponse,
@@ -19,7 +23,8 @@ from sahayak.api.schemas import (
     SessionResponse,
 )
 from sahayak.domain.enums import ParticipantRole
-from sahayak.domain.models import Participant, Session
+from sahayak.domain.models import Participant, Session, SessionRecord
+from sahayak.services.record import SessionRecordService
 from sahayak.services.sessions import JOINABLE_ROLES, SessionService
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
@@ -101,3 +106,15 @@ async def end_session(
     token: Annotated[str, Depends(require_access_token)],
 ) -> SessionResponse:
     return _session_response(service.end_session(session_id, token))
+
+
+@router.get("/{session_id}/record", response_model=SessionRecord)
+async def get_session_record(
+    session_id: UUID,
+    service: Annotated[SessionService, Depends(get_session_service)],
+    record_service: Annotated[SessionRecordService, Depends(get_session_record_service)],
+    token: Annotated[str, Depends(require_access_token)],
+) -> SessionRecord:
+    """Retrieve the final bilingual session record for an authorized session."""
+    session = service.get_session(session_id, token)
+    return record_service.generate_session_record(session.session_id)

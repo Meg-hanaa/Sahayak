@@ -48,7 +48,7 @@ class AgentTurnResult:
     turn: Turn
     state: TurnState
     decision: AgentDecision
-    risk_assessment: RiskAssessment
+    risk_assessment: RiskAssessment | None = None
     speech_output: str | None = None
     confirmation: Confirmation | None = None
     verified_facts: list[VerifiedFact] = field(default_factory=list)
@@ -142,6 +142,7 @@ class AgentOrchestrator:
         source_language: LanguageCode | None = None,
         confidence_data: dict[str, float] | None = None,
         turn_id: UUID | None = None,
+        speech_end_time: datetime | None = None,
     ) -> AgentTurnResult:
         """Execute the LISTEN → UNDERSTAND → DECIDE → SPEAK → RECORD loop."""
         tid = turn_id or uuid4()
@@ -161,6 +162,7 @@ class AgentOrchestrator:
             role=role,
             source_text=source_text,
             start_time=now,
+            speech_end_time=speech_end_time or now,
             processing_status=ProcessingStatus.PROCESSING,
             confidence_data=confidence_data,
             source_language=src_lang,
@@ -175,13 +177,41 @@ class AgentOrchestrator:
         # ---------------------------------------------------------
         # 2. UNDERSTAND: Translation + Deterministic Safety Engine
         # ---------------------------------------------------------
-        translation_result = await self.translation_provider.translate(
-            text=source_text,
-            source_language=src_lang,
-            target_language=tgt_lang,
-        )
-        translated_text = translation_result.translated_text
-        turn.translated_text = translated_text
+        try:
+            translation_result = await self.translation_provider.translate(
+                text=source_text,
+                source_language=src_lang,
+                target_language=tgt_lang,
+            )
+            translated_text = translation_result.translated_text
+            turn.translated_text = translated_text
+        except Exception as exc:
+            # Handle translation timeout or provider error gracefully
+            logger.error("Translation provider failed for turn %s: %s", tid, exc)
+            turn.translated_text = None
+            turn.processing_status = ProcessingStatus.FAILED
+            turn.error_message = str(exc)
+            turn.decision = AgentDecision.REPEAT
+            state_machine.transition_to(TurnState.UNRESOLVED, reason=f"Translation provider failed: {exc}")
+            turn.state = TurnState.UNRESOLVED
+
+            out_now = self.clock.now()
+            turn.output_start_time = out_now
+            if turn.speech_end_time:
+                turn.latency_ms = (out_now - turn.speech_end_time).total_seconds() * 1000.0
+
+            if tid not in self._unresolved_turns.setdefault(session_id, []):
+                self._unresolved_turns[session_id].append(tid)
+
+            # Never invent missing output: speech_output is None
+            return AgentTurnResult(
+                turn=turn,
+                state=turn.state,
+                decision=turn.decision,
+                risk_assessment=None,
+                speech_output=None,
+                is_repeat_requested=True,
+            )
 
         risk_assessment = self.safety_engine.analyze_text(
             text=source_text,
@@ -190,6 +220,11 @@ class AgentOrchestrator:
             translated_text=translated_text,
         )
         turn.risk_assessment = risk_assessment
+
+        out_now = self.clock.now()
+        turn.output_start_time = out_now
+        if turn.speech_end_time:
+            turn.latency_ms = (out_now - turn.speech_end_time).total_seconds() * 1000.0
 
         # ---------------------------------------------------------
         # 3. DECIDE: Standard, Confirm, Repeat, or Escalate
@@ -262,6 +297,9 @@ class AgentOrchestrator:
             repeat_prompt = build_repeat_request_prompt(language=src_lang)
             turn.speech_output_text = repeat_prompt
 
+            if tid not in self._unresolved_turns.setdefault(session_id, []):
+                self._unresolved_turns[session_id].append(tid)
+
             return AgentTurnResult(
                 turn=turn,
                 state=turn.state,
@@ -286,6 +324,9 @@ class AgentOrchestrator:
             )
             turn.speech_output_text = emergency_instruction
 
+            if tid not in self._unresolved_turns.setdefault(session_id, []):
+                self._unresolved_turns[session_id].append(tid)
+
             return AgentTurnResult(
                 turn=turn,
                 state=turn.state,
@@ -302,6 +343,201 @@ class AgentOrchestrator:
             turn.state = TurnState.SPEAKING
             turn.decision = decision
             turn.speech_output_text = translated_text
+            return AgentTurnResult(
+                turn=turn,
+                state=turn.state,
+                decision=decision,
+                risk_assessment=risk_assessment,
+                speech_output=translated_text,
+            )
+
+    async def retry_turn(
+        self,
+        turn_id: UUID,
+        speech_end_time: datetime | None = None,
+    ) -> AgentTurnResult:
+        """Retry a failed or unresolved turn without restarting the consultation."""
+        turn = self._turns.get(turn_id)
+        if turn is None:
+            raise SahayakError(f"Turn {turn_id} not found for retry")
+
+        state_machine = self._state_machines.get(turn_id)
+        if state_machine is None:
+            state_machine = TurnStateMachine(initial_state=turn.state)
+            self._state_machines[turn_id] = state_machine
+
+        # Increment retry count
+        turn.retry_count += 1
+        turn.error_message = None
+
+        if state_machine.current_state in (TurnState.UNRESOLVED, TurnState.NEEDS_REPETITION, TurnState.READY):
+            state_machine.transition_to(TurnState.PROCESSING, reason=f"Retrying turn (attempt #{turn.retry_count})")
+        turn.state = TurnState.PROCESSING
+        turn.processing_status = ProcessingStatus.PROCESSING
+        if speech_end_time:
+            turn.speech_end_time = speech_end_time
+
+        try:
+            translation_result = await self.translation_provider.translate(
+                text=turn.source_text,
+                source_language=turn.source_language or LanguageCode.HINDI,
+                target_language=turn.target_language or LanguageCode.ENGLISH,
+            )
+            translated_text = translation_result.translated_text
+            turn.translated_text = translated_text
+        except Exception as exc:
+            logger.error("Retry translation failed for turn %s: %s", turn_id, exc)
+            turn.translated_text = None
+            turn.processing_status = ProcessingStatus.FAILED
+            turn.error_message = str(exc)
+            turn.decision = AgentDecision.REPEAT
+            state_machine.transition_to(TurnState.UNRESOLVED, reason=f"Retry provider failed: {exc}")
+            turn.state = TurnState.UNRESOLVED
+
+            out_now = self.clock.now()
+            turn.output_start_time = out_now
+            if turn.speech_end_time:
+                turn.latency_ms = (out_now - turn.speech_end_time).total_seconds() * 1000.0
+
+            if turn_id not in self._unresolved_turns.setdefault(turn.session_id, []):
+                self._unresolved_turns[turn.session_id].append(turn_id)
+
+            return AgentTurnResult(
+                turn=turn,
+                state=turn.state,
+                decision=turn.decision,
+                risk_assessment=None,
+                speech_output=None,
+                is_repeat_requested=True,
+            )
+
+        # Translation succeeded on retry
+        risk_assessment = self.safety_engine.analyze_text(
+            text=turn.source_text,
+            turn_id=turn_id,
+            confidence_data=turn.confidence_data,
+            translated_text=translated_text,
+        )
+        turn.risk_assessment = risk_assessment
+
+        out_now = self.clock.now()
+        turn.output_start_time = out_now
+        if turn.speech_end_time:
+            turn.latency_ms = (out_now - turn.speech_end_time).total_seconds() * 1000.0
+
+        safety_state = risk_assessment.safety_state
+
+        if safety_state == SafetyState.STANDARD:
+            decision = AgentDecision.CONTINUE
+            state_machine.transition_to(TurnState.SPEAKING, reason="Turn retry verified standard; speaking translation")
+            turn.state = TurnState.SPEAKING
+            turn.decision = decision
+            turn.processing_status = ProcessingStatus.COMPLETED
+            turn.speech_output_text = translated_text
+
+            # Remove from unresolved list upon successful resolution
+            session_unresolved = self._unresolved_turns.get(turn.session_id, [])
+            if turn_id in session_unresolved:
+                session_unresolved.remove(turn_id)
+
+            return AgentTurnResult(
+                turn=turn,
+                state=turn.state,
+                decision=decision,
+                risk_assessment=risk_assessment,
+                speech_output=translated_text,
+            )
+        elif safety_state == SafetyState.NEEDS_CONFIRMATION:
+            decision = AgentDecision.CONFIRM
+            state_machine.transition_to(TurnState.CONFIRMING, reason="Turn retry requires confirmation")
+            turn.state = TurnState.CONFIRMING
+            turn.decision = decision
+            turn.processing_status = ProcessingStatus.PROCESSING
+            matched_term = risk_assessment.matched_term or turn.source_text
+            category = risk_assessment.category
+            if risk_assessment.facts:
+                primary_fact = risk_assessment.facts[0]
+                matched_term = primary_fact.matched_term
+                category = primary_fact.category.value
+            confirmation = self.confirmation_manager.create_confirmation(
+                turn_id=turn_id,
+                term=matched_term,
+                category=category,
+                language=turn.source_language or LanguageCode.HINDI,
+                responder_role=turn.role,
+            )
+            turn.confirmation = confirmation
+            self._confirmations[turn_id] = confirmation
+            turn.speech_output_text = confirmation.prompt_text
+
+            session_unresolved = self._unresolved_turns.get(turn.session_id, [])
+            if turn_id in session_unresolved:
+                session_unresolved.remove(turn_id)
+
+            return AgentTurnResult(
+                turn=turn,
+                state=turn.state,
+                decision=decision,
+                risk_assessment=risk_assessment,
+                speech_output=confirmation.prompt_text,
+                confirmation=confirmation,
+                is_paused_for_confirmation=True,
+            )
+        elif safety_state == SafetyState.NEEDS_REPETITION:
+            decision = AgentDecision.REPEAT
+            state_machine.transition_to(TurnState.NEEDS_REPETITION, reason="Turn retry uncertain term")
+            turn.state = TurnState.NEEDS_REPETITION
+            turn.decision = decision
+            turn.processing_status = ProcessingStatus.FAILED
+            repeat_prompt = build_repeat_request_prompt(language=turn.source_language or LanguageCode.HINDI)
+            turn.speech_output_text = repeat_prompt
+
+            if turn_id not in self._unresolved_turns.setdefault(turn.session_id, []):
+                self._unresolved_turns[turn.session_id].append(turn_id)
+
+            return AgentTurnResult(
+                turn=turn,
+                state=turn.state,
+                decision=decision,
+                risk_assessment=risk_assessment,
+                speech_output=repeat_prompt,
+                is_repeat_requested=True,
+            )
+        elif safety_state == SafetyState.ESCALATE:
+            decision = AgentDecision.ESCALATE
+            state_machine.transition_to(TurnState.ENDED, reason="Turn retry emergency detected")
+            turn.state = TurnState.ENDED
+            turn.decision = decision
+            turn.processing_status = ProcessingStatus.FAILED
+            emergency_instruction = (
+                self.settings.emergency_instruction_hi
+                if turn.source_language == LanguageCode.HINDI
+                else self.settings.emergency_instruction_en
+            )
+            turn.speech_output_text = emergency_instruction
+
+            if turn_id not in self._unresolved_turns.setdefault(turn.session_id, []):
+                self._unresolved_turns[turn.session_id].append(turn_id)
+
+            return AgentTurnResult(
+                turn=turn,
+                state=turn.state,
+                decision=decision,
+                risk_assessment=risk_assessment,
+                speech_output=emergency_instruction,
+                is_escalated=True,
+            )
+        else:
+            decision = AgentDecision.CONTINUE
+            state_machine.transition_to(TurnState.SPEAKING, reason="Defaulting to standard interpretation")
+            turn.state = TurnState.SPEAKING
+            turn.decision = decision
+            turn.speech_output_text = translated_text
+
+            session_unresolved = self._unresolved_turns.get(turn.session_id, [])
+            if turn_id in session_unresolved:
+                session_unresolved.remove(turn_id)
+
             return AgentTurnResult(
                 turn=turn,
                 state=turn.state,
@@ -370,25 +606,47 @@ class AgentOrchestrator:
                 ]
             )
 
+            existing_facts = self._verified_facts.setdefault(turn.session_id, [])
             verified_facts: list[VerifiedFact] = []
             for fact in facts_to_verify:
-                vf = VerifiedFact(
-                    fact_id=uuid4(),
-                    turn_id=turn.turn_id,
-                    category=fact.category.value,
-                    source_wording=turn.source_text,  # MUST preserve original source wording
-                    translated_wording=turn.translated_text or "",
-                    confirmation_id=confirmation.confirmation_id,
-                    verified_at=now,
+                already_exists = any(
+                    ef.category == fact.category.value and ef.source_wording == turn.source_text
+                    for ef in existing_facts
                 )
-                verified_facts.append(vf)
+                if not already_exists:
+                    vf = VerifiedFact(
+                        fact_id=uuid4(),
+                        turn_id=turn.turn_id,
+                        category=fact.category.value,
+                        source_wording=turn.source_text,  # MUST preserve original source wording
+                        translated_wording=turn.translated_text or "",
+                        confirmation_id=confirmation.confirmation_id,
+                        verified_at=now,
+                    )
+                    verified_facts.append(vf)
+                    existing_facts.append(vf)
+                else:
+                    for ef in existing_facts:
+                        if ef.category == fact.category.value and ef.source_wording == turn.source_text:
+                            verified_facts.append(ef)
+                            break
 
-            turn.verified_facts.extend(verified_facts)
-            self._verified_facts.setdefault(turn.session_id, []).extend(verified_facts)
+            for vf in verified_facts:
+                if vf not in turn.verified_facts:
+                    turn.verified_facts.append(vf)
 
             # Normal interpretation can now proceed toward speech output
             speech_output = turn.translated_text
             turn.speech_output_text = speech_output
+
+            out_now = self.clock.now()
+            turn.output_start_time = out_now
+            if turn.speech_end_time:
+                turn.latency_ms = (out_now - turn.speech_end_time).total_seconds() * 1000.0
+
+            session_unresolved = self._unresolved_turns.get(turn.session_id, [])
+            if turn.turn_id in session_unresolved:
+                session_unresolved.remove(turn.turn_id)
 
             return ConfirmationStepResult(
                 turn_id=turn.turn_id,
@@ -407,7 +665,8 @@ class AgentOrchestrator:
             state_machine.transition_to(TurnState.UNRESOLVED, reason="User rejected critical confirmation")
             turn.state = TurnState.UNRESOLVED
             turn.processing_status = ProcessingStatus.COMPLETED
-            self._unresolved_turns.setdefault(turn.session_id, []).append(turn.turn_id)
+            if turn.turn_id not in self._unresolved_turns.setdefault(turn.session_id, []):
+                self._unresolved_turns[turn.session_id].append(turn.turn_id)
 
             return ConfirmationStepResult(
                 turn_id=turn.turn_id,
@@ -446,7 +705,8 @@ class AgentOrchestrator:
             state_machine.transition_to(TurnState.UNRESOLVED, reason="Ambiguous response exhausted retries; marking unresolved")
             turn.state = TurnState.UNRESOLVED
             turn.processing_status = ProcessingStatus.COMPLETED
-            self._unresolved_turns.setdefault(turn.session_id, []).append(turn.turn_id)
+            if turn.turn_id not in self._unresolved_turns.setdefault(turn.session_id, []):
+                self._unresolved_turns[turn.session_id].append(turn.turn_id)
 
             return ConfirmationStepResult(
                 turn_id=turn.turn_id,

@@ -55,11 +55,13 @@ _ALLOWED_TRANSITIONS: dict[TurnState, frozenset[TurnState]] = {
     TurnState.NEEDS_REPETITION: frozenset({
         TurnState.LISTENING,
         TurnState.READY,
+        TurnState.PROCESSING,
         TurnState.SPEAKING,
         TurnState.ENDED,
     }),
     TurnState.UNRESOLVED: frozenset({
         TurnState.READY,
+        TurnState.PROCESSING,
         TurnState.ENDED,
     }),
     TurnState.ENDED: frozenset(),  # Terminal state: cannot transition out
