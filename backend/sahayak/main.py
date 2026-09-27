@@ -64,6 +64,23 @@ def create_app(
     app.state.session_service = SessionService(store=store, settings=resolved, clock=resolved_clock)
     app.state.providers = build_provider_registry(resolved)
 
+    from sahayak.services.agent import AgentOrchestrator
+    from sahayak.services.routing import SessionConnectionManager, TwoParticipantRouter
+
+    conn_mgr = SessionConnectionManager()
+    orchestrator = AgentOrchestrator(
+        translation_provider=app.state.providers.translation,
+        settings=resolved,
+        clock=resolved_clock,
+    )
+    app.state.connection_manager = conn_mgr
+    app.state.agent_orchestrator = orchestrator
+    app.state.router = TwoParticipantRouter(
+        connection_manager=conn_mgr,
+        orchestrator=orchestrator,
+    )
+
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=resolved.cors_origins,

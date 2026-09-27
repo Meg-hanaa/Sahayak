@@ -28,6 +28,10 @@ from sahayak.domain.safety import (
     CriticalFactCategory,
     SafetyRuleId,
 )
+from sahayak.domain.routing import (
+    OutboundEvent,
+    OutboundEventType,
+)
 from sahayak.domain.translation import (
     TranslationResult,
     TranslationStatus,
@@ -46,6 +50,8 @@ __all__ = [
     "CriticalFactCategory",
     "LanguageCode",
     "MicrophoneStatus",
+    "OutboundEvent",
+    "OutboundEventType",
     "Participant",
     "ParticipantRole",
     "ProcessingStatus",

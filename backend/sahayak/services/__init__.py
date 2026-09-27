@@ -7,6 +7,14 @@ from sahayak.services.agent import (
     TurnStateMachine,
 )
 from sahayak.services.clock import Clock, FakeClock, SystemClock
+from sahayak.services.routing import (
+    CrossRoleLeakageError,
+    InvalidRecipientError,
+    ParticipantNotConnectedError,
+    RecipientValidator,
+    SessionConnectionManager,
+    TwoParticipantRouter,
+)
 from sahayak.services.safety import (
     DeterministicSafetyEngine,
     MedicalGlossary,
@@ -23,14 +31,21 @@ __all__ = [
     "ConfirmationManager",
     "ConfirmationResponseClassifier",
     "ConfirmationStepResult",
+    "CrossRoleLeakageError",
     "DeterministicSafetyEngine",
     "FakeClock",
     "InMemorySessionStore",
+    "InvalidRecipientError",
     "MedicalGlossary",
+    "ParticipantNotConnectedError",
     "ProtectedTerm",
+    "RecipientValidator",
     "SafetyEngineConfig",
+    "SessionConnectionManager",
     "SessionService",
     "SystemClock",
     "TurnStateMachine",
+    "TwoParticipantRouter",
 ]
+
 
