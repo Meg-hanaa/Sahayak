@@ -5,9 +5,9 @@
 
 export type ParticipantRole = 'doctor' | 'patient';
 
-export type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting' | 'waiting';
+export type ConnectionStatus = 'connected' | 'disconnected' | 'reconnecting' | 'waiting' | 'connecting' | 'error';
 
-export type SessionStatus = 'created' | 'active' | 'paused' | 'ended' | 'error';
+export type SessionStatus = 'created' | 'ready' | 'active' | 'paused' | 'ended' | 'error' | 'loading';
 
 export type LanguageCode = 'en' | 'hi';
 
@@ -55,9 +55,11 @@ export interface ConversationTurn {
 export interface ConsultationSessionState {
   sessionId: string;
   status: SessionStatus;
+  connectionStatus: ConnectionStatus;
   activityState: SystemActivityState;
-  isFixture: boolean; // True when running on development fixtures
+  isFixture: boolean; // True only when running explicit development preview fixtures
   fixtureNotice?: string;
+  liveAudioAvailable: boolean; // False because current backend does not support audio streaming
   doctor: ParticipantInfo;
   patient: ParticipantInfo;
   currentTurn?: ConversationTurn | null;

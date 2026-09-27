@@ -36,7 +36,7 @@ export const App: React.FC = () => {
       {/* Phase 3 Preparation & Join Routes */}
       <Route path="/consultation/new" element={<DoctorPreparationPage />} />
       <Route path="/join" element={<PatientJoinEntryPage />} />
-      <Route path="/join/:token" element={<PatientPreparationPage />} />
+      <Route path="/join/:sessionId" element={<PatientPreparationPage />} />
 
       {/* Development-only preview fixture routes (strictly excluded from production) */}
       {import.meta.env.DEV && FoundationPreviewPage && (

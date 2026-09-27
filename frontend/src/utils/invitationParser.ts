@@ -1,17 +1,19 @@
 /**
  * Invitation URL Parser Utility
  * Validates patient invitation URLs or relative paths against the current app origin.
+ * Requires both sessionId and patient access token as required by the backend.
  */
 
 export interface ParseInvitationSuccess {
   ok: true;
+  sessionId: string;
   token: string;
 }
 
 export interface ParseInvitationFailure {
   ok: false;
   error: string;
-  errorCode: 'empty' | 'invalid_format';
+  errorCode: 'empty' | 'invalid_format' | 'missing_session_id' | 'missing_token';
 }
 
 export type ParseInvitationResult = ParseInvitationSuccess | ParseInvitationFailure;
@@ -29,8 +31,6 @@ export function parseInvitationInput(
     };
   }
 
-  // Reject raw malformed percent encodings before URL resolution if needed,
-  // or catch URL parsing errors.
   let parsed: URL;
   try {
     parsed = new URL(trimmed, appOrigin);
@@ -51,7 +51,7 @@ export function parseInvitationInput(
     };
   }
 
-  // 2. Reject credentials embedded in URL (e.g., http://user:pass@host/...)
+  // 2. Reject credentials embedded in URL
   if (parsed.username || parsed.password) {
     return {
       ok: false,
@@ -69,9 +69,8 @@ export function parseInvitationInput(
     };
   }
 
-  // 4. Path check: must begin with /join/
-  const prefix = '/join/';
-  if (!parsed.pathname.startsWith(prefix)) {
+  // 4. Path check: must begin with /join
+  if (!parsed.pathname.startsWith('/join')) {
     return {
       ok: false,
       errorCode: 'invalid_format',
@@ -79,9 +78,51 @@ export function parseInvitationInput(
     };
   }
 
-  // 5. Exactly one non-empty token segment, with optional single trailing slash
-  // Reject /join/abc/extra, /join/abc//, /join//, /join/
-  const remainder = parsed.pathname.slice(prefix.length);
+  // Reject invalid double slashes
+  if (parsed.pathname.includes('//')) {
+    return {
+      ok: false,
+      errorCode: 'invalid_format',
+      error: 'यह लिंक सही नहीं लग रहा है। डॉक्टर से मिला पूरा लिंक पेस्ट करें।',
+    };
+  }
+
+  // 5. Query parameters format: /join?session=xxx&token=yyy
+  const querySession = parsed.searchParams.get('session');
+  const queryToken = parsed.searchParams.get('token');
+
+  if (parsed.pathname === '/join' || parsed.pathname === '/join/') {
+    if (querySession && queryToken) {
+      try {
+        return {
+          ok: true,
+          sessionId: decodeURIComponent(querySession.trim()),
+          token: decodeURIComponent(queryToken.trim()),
+        };
+      } catch {
+        return {
+          ok: false,
+          errorCode: 'invalid_format',
+          error: 'यह लिंक सही नहीं लग रहा है। डॉक्टर से मिला पूरा लिंक पेस्ट करें।',
+        };
+      }
+    }
+    if (queryToken && !querySession) {
+      return {
+        ok: false,
+        errorCode: 'missing_session_id',
+        error: 'पुराने या अधूरे लिंक में सत्र पहचान (Session ID) मौजूद नहीं है। कृपया डॉक्टर से नया पूरा लिंक मांगें।',
+      };
+    }
+    return {
+      ok: false,
+      errorCode: 'invalid_format',
+      error: 'यह लिंक सही नहीं लग रहा है। डॉक्टर से मिला पूरा लिंक पेस्ट करें।',
+    };
+  }
+
+  // Path segments format: /join/<segment>
+  const remainder = parsed.pathname.slice('/join/'.length).replace(/\/$/, '');
   if (!remainder) {
     return {
       ok: false,
@@ -90,25 +131,10 @@ export function parseInvitationInput(
     };
   }
 
-  // Check for double slashes anywhere in the remainder (e.g. "abc//", "/abc", "abc//def")
-  if (remainder.includes('//')) {
-    return {
-      ok: false,
-      errorCode: 'invalid_format',
-      error: 'यह लिंक सही नहीं लग रहा है। डॉक्टर से मिला पूरा लिंक पेस्ट करें।',
-    };
-  }
-
   const segments = remainder.split('/');
-  // Case 1: "token" -> segments: ["token"]
-  // Case 2: "token/" -> segments: ["token", ""]
-  // Any segments with length > 2, or segments[0] empty, or multiple segments is rejected
-  let tokenSegment = '';
-  if (segments.length === 1 && segments[0].length > 0) {
-    tokenSegment = segments[0];
-  } else if (segments.length === 2 && segments[0].length > 0 && segments[1] === '') {
-    tokenSegment = segments[0];
-  } else {
+
+  // Reject extra path segments (e.g. /join/abc/extra)
+  if (segments.length > 1) {
     return {
       ok: false,
       errorCode: 'invalid_format',
@@ -116,9 +142,11 @@ export function parseInvitationInput(
     };
   }
 
-  // 6. Verify URL encoding integrity (no malformed percent-sequences like %8G)
+  const singleSegment = segments[0];
+
+  // Validate percent encoding of singleSegment
   try {
-    decodeURIComponent(tokenSegment);
+    decodeURIComponent(singleSegment);
   } catch {
     return {
       ok: false,
@@ -127,9 +155,27 @@ export function parseInvitationInput(
     };
   }
 
-  // Preserve valid token casing and encoding without forcing lowercasing or stripping
+  // Case A: /join/:sessionId?token=:token
+  if (queryToken) {
+    try {
+      return {
+        ok: true,
+        sessionId: decodeURIComponent(singleSegment),
+        token: decodeURIComponent(queryToken.trim()),
+      };
+    } catch {
+      return {
+        ok: false,
+        errorCode: 'invalid_format',
+        error: 'यह लिंक सही नहीं लग रहा है। डॉक्टर से मिला पूरा लिंक पेस्ट करें।',
+      };
+    }
+  }
+
+  // Case B: Single segment without query token is a legacy or incomplete link missing session ID
   return {
-    ok: true,
-    token: tokenSegment,
+    ok: false,
+    errorCode: 'missing_session_id',
+    error: 'पुराने या अधूरे लिंक में सत्र पहचान (Session ID) मौजूद नहीं है। कृपया डॉक्टर से नया पूरा लिंक मांगें।',
   };
 }

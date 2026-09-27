@@ -40,8 +40,8 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
         </h2>
         <p className="sahayak-transcript__empty-message">
           {isDoctor
-            ? 'No conversation turns recorded yet. Spoken speech and interpretations will appear here.'
-            : 'अभी कोई बातचीत रिकॉर्ड नहीं हुई है। बोली गई बातें और अनुवाद यहाँ दिखाई देंगे।'}
+            ? 'No conversation turns recorded yet. Live speech streaming is not yet supported by the current backend pipeline.'
+            : 'अभी कोई बातचीत दर्ज नहीं है। वर्तमान बैकएंड पाइपलाइन में लाइव भाषण स्ट्रीमिंग अभी समर्थित नहीं है।'}
         </p>
       </div>
     );

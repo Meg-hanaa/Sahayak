@@ -166,6 +166,73 @@
   padding-right: var(--space-5);
 }
 
+.sahayak-prep-ready-flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.sahayak-prep-success-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface-base);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.sahayak-prep-success-banner svg {
+  flex-shrink: 0;
+  color: var(--color-text-primary);
+}
+
+.sahayak-prep-error-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background-color: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: #991B1B;
+}
+
+.sahayak-prep-error-banner svg {
+  flex-shrink: 0;
+  color: #DC2626;
+}
+
+.sahayak-prep-enter-wrapper {
+  margin-top: var(--space-2);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sahayak-prep-enter-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  padding: 0 var(--space-6);
+  background-color: var(--color-midnight);
+  color: var(--color-snow);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  transition: background-color var(--transition-fast);
+}
+
+.sahayak-prep-enter-link:hover {
+  background-color: var(--color-midnight-hover);
+}
+
 .sahayak-dev-fixture-link {
   display: inline-flex;
   align-items: center;

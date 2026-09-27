@@ -80,9 +80,11 @@ export function createFixtureSession(
   return {
     sessionId,
     status: 'active',
+    connectionStatus: 'connected',
     activityState: 'idle',
     isFixture: true,
     fixtureNotice: isDoctor ? FIXTURE_DOCTOR_NOTICE : FIXTURE_PATIENT_NOTICE,
+    liveAudioAvailable: false,
     doctor: {
       participantId: 'doc-fixture-1',
       role: 'doctor',

@@ -4,16 +4,17 @@ import type {
   SystemActivityState,
 } from '../types/consultation.ts';
 import {
-  createFixtureSession,
-  FIXTURE_DOCTOR_NOTICE,
-  FIXTURE_PATIENT_NOTICE,
-} from './consultationFixtures.ts';
+  sessionApi,
+  getWebSocketUrl,
+  type SessionResponse,
+} from './sessionApi.ts';
 
 export interface IConsultationAdapter {
   connect(sessionId: string, role: ParticipantRole, token?: string): Promise<void>;
   disconnect(): void;
   setMuted(muted: boolean): void;
   endConsultation(): Promise<void>;
+  leaveConsultation(): Promise<void>;
   subscribe(listener: (state: ConsultationSessionState) => void): () => void;
   getState(): ConsultationSessionState;
 }
@@ -24,11 +25,35 @@ export class ConsultationAdapter implements IConsultationAdapter {
   private ws: WebSocket | null = null;
   private role: ParticipantRole = 'doctor';
   private token?: string;
+  private pollIntervalId: ReturnType<typeof setInterval> | null = null;
   private isDestroyed = false;
 
   constructor(sessionId: string, role: ParticipantRole) {
     this.role = role;
-    this.state = createFixtureSession(sessionId, role);
+    this.state = {
+      sessionId,
+      status: 'loading',
+      connectionStatus: 'connecting',
+      activityState: 'idle',
+      isFixture: false,
+      liveAudioAvailable: false,
+      doctor: {
+        participantId: '',
+        role: 'doctor',
+        connectionStatus: 'waiting',
+        isMuted: false,
+      },
+      patient: {
+        participantId: '',
+        role: 'patient',
+        connectionStatus: 'waiting',
+        isMuted: false,
+      },
+      currentTurn: null,
+      turns: [], // Empty initially: no fake fixtures in real sessions
+      isMuted: false,
+      errorMessage: null,
+    };
   }
 
   public getState(): ConsultationSessionState {
@@ -64,52 +89,88 @@ export class ConsultationAdapter implements IConsultationAdapter {
     this.role = role;
     this.token = token;
 
-    // Check if live backend is available via REST check
-    if (token) {
-      try {
-        const response = await fetch(`/api/sessions/${sessionId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (response.ok && !this.isDestroyed) {
-          const sessionData = await response.json();
-          // Real connected session from backend
-          this.updateState({
-            sessionId,
-            status: sessionData.status || 'active',
-            isFixture: false,
-            fixtureNotice: undefined,
-            activityState: 'idle',
-          });
-
-          // Connect role-aware WebSocket
-          this.connectWebSocket(sessionId, token);
-          return;
-        }
-      } catch {
-        // Network or server unavailable; fall through to fixture mode
-      }
-    }
-
-    // Fixture Mode with explicit label
-    if (!this.isDestroyed) {
+    // Reject missing access tokens honestly without falling back to simulation fixtures
+    if (!token) {
       this.updateState({
-        sessionId,
-        status: 'active',
-        isFixture: true,
-        fixtureNotice: role === 'doctor' ? FIXTURE_DOCTOR_NOTICE : FIXTURE_PATIENT_NOTICE,
-        activityState: 'idle',
+        status: 'error',
+        connectionStatus: 'error',
+        errorMessage:
+          role === 'doctor'
+            ? 'Access token missing. Please create and join the consultation from the preparation screen.'
+            : 'सुरक्षा टोकन मौजूद नहीं है। कृपया तैयारी पृष्ठ से जुड़ें।',
       });
+      return;
     }
+
+    // 1. Fetch live session status and participants from REST API
+    try {
+      const sessionData = await sessionApi.getSession(sessionId, token);
+      if (this.isDestroyed) return;
+
+      this.applySessionResponse(sessionData);
+
+      if (sessionData.status === 'ended') {
+        this.updateState({
+          status: 'ended',
+          connectionStatus: 'disconnected',
+        });
+        return;
+      }
+    } catch (err: unknown) {
+      if (this.isDestroyed) return;
+      const message =
+        err instanceof Error ? err.message : 'Unable to connect to consultation session.';
+      this.updateState({
+        status: 'error',
+        connectionStatus: 'error',
+        errorMessage: message,
+      });
+      return;
+    }
+
+    // 2. Connect role-aware WebSocket
+    this.connectWebSocket(sessionId, token);
+
+    // 3. Start periodic session polling to update participant presence honestly
+    this.startPresencePolling(sessionId, token);
+  }
+
+  private applySessionResponse(sessionData: SessionResponse): void {
+    const docParticipant = sessionData.participants.find((p) => p.role === 'doctor');
+    const patParticipant = sessionData.participants.find((p) => p.role === 'patient');
+
+    this.updateState({
+      status: sessionData.status,
+      doctor: {
+        participantId: docParticipant?.participant_id || '',
+        role: 'doctor',
+        connectionStatus:
+          docParticipant?.connection_status === 'connected'
+            ? 'connected'
+            : docParticipant?.connection_status === 'reconnecting'
+            ? 'reconnecting'
+            : 'waiting',
+        isMuted: docParticipant?.microphone_status === 'muted',
+      },
+      patient: {
+        participantId: patParticipant?.participant_id || '',
+        role: 'patient',
+        connectionStatus:
+          patParticipant?.connection_status === 'connected'
+            ? 'connected'
+            : patParticipant?.connection_status === 'reconnecting'
+            ? 'reconnecting'
+            : 'waiting',
+        isMuted: patParticipant?.microphone_status === 'muted',
+      },
+    });
   }
 
   private connectWebSocket(sessionId: string, token: string): void {
     if (this.isDestroyed) return;
+
     try {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws/sessions/${sessionId}?token=${encodeURIComponent(token)}`;
+      const wsUrl = getWebSocketUrl(sessionId, token);
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onmessage = (event) => {
@@ -118,32 +179,68 @@ export class ConsultationAdapter implements IConsultationAdapter {
           const data = JSON.parse(event.data);
           if (data.type === 'connected') {
             this.updateState({
+              connectionStatus: 'connected',
               activityState: 'idle',
             });
           }
         } catch {
-          // Non-JSON message
+          // Non-JSON ack or message
         }
       };
 
       this.ws.onerror = () => {
         if (this.isDestroyed) return;
         this.updateState({
-          activityState: 'error',
-          errorMessage: 'Connection to consultation server failed.',
+          connectionStatus: 'error',
+          errorMessage: 'WebSocket transport connection failed.',
         });
       };
 
       this.ws.onclose = () => {
         if (this.isDestroyed) return;
-        if (this.state.status === 'active') {
-          this.updateState({
-            activityState: 'reconnecting',
-          });
-        }
+        this.updateState({
+          connectionStatus: 'disconnected',
+        });
       };
     } catch {
-      // WebSocket creation failed
+      if (!this.isDestroyed) {
+        this.updateState({
+          connectionStatus: 'error',
+          errorMessage: 'Failed to establish WebSocket connection.',
+        });
+      }
+    }
+  }
+
+  private startPresencePolling(sessionId: string, token: string): void {
+    this.stopPresencePolling();
+    this.pollIntervalId = setInterval(async () => {
+      if (this.isDestroyed || this.state.status === 'ended') {
+        this.stopPresencePolling();
+        return;
+      }
+      try {
+        const sessionData = await sessionApi.getSession(sessionId, token);
+        if (this.isDestroyed) return;
+        this.applySessionResponse(sessionData);
+        if (sessionData.status === 'ended') {
+          this.stopPresencePolling();
+          this.disconnect();
+          this.updateState({
+            status: 'ended',
+            connectionStatus: 'disconnected',
+          });
+        }
+      } catch {
+        // Polling failure, maintain current state
+      }
+    }, 5000);
+  }
+
+  private stopPresencePolling(): void {
+    if (this.pollIntervalId) {
+      clearInterval(this.pollIntervalId);
+      this.pollIntervalId = null;
     }
   }
 
@@ -157,39 +254,47 @@ export class ConsultationAdapter implements IConsultationAdapter {
     this.updateState({ activityState: activity });
   }
 
+  /**
+   * Doctor ends consultation via backend POST /api/sessions/{id}/end.
+   */
   public async endConsultation(): Promise<void> {
     if (this.isDestroyed) return;
+    this.stopPresencePolling();
 
-    if (!this.state.isFixture && this.token) {
+    if (this.token && this.role === 'doctor') {
       try {
-        await fetch(`/api/sessions/${this.state.sessionId}/end`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
-        });
+        await sessionApi.endSession(this.state.sessionId, this.token);
       } catch {
-        // ignore network error on ending
+        // Ignore network errors during session termination
       }
     }
 
-    if (this.ws) {
-      try {
-        this.ws.close();
-      } catch {
-        // ignore
-      }
-      this.ws = null;
-    }
-
+    this.disconnect();
     this.updateState({
       status: 'ended',
+      connectionStatus: 'disconnected',
+      activityState: 'idle',
+      currentTurn: null,
+    });
+  }
+
+  /**
+   * Patient leaves consultation by disconnecting locally without ending the session.
+   */
+  public async leaveConsultation(): Promise<void> {
+    if (this.isDestroyed) return;
+    this.stopPresencePolling();
+    this.disconnect();
+    this.updateState({
+      status: 'ended',
+      connectionStatus: 'disconnected',
       activityState: 'idle',
       currentTurn: null,
     });
   }
 
   public disconnect(): void {
+    this.stopPresencePolling();
     if (this.ws) {
       try {
         this.ws.close();

@@ -5,6 +5,7 @@ import { TaskHeader } from '../components/TaskHeader';
 import { Container } from '../components/Container';
 import { Button } from '../components/Button';
 import { parseInvitationInput } from '../utils/invitationParser';
+import { setSessionToken } from '../utils/tokenStorage';
 import './PatientJoinEntryPage.css';
 
 export const PatientJoinEntryPage: React.FC = () => {
@@ -22,7 +23,9 @@ export const PatientJoinEntryPage: React.FC = () => {
     if (!result.ok) {
       setError(result.error);
     } else {
-      navigate(`/join/${result.token}`);
+      // Retain token in sessionStorage only (never in URL or localStorage)
+      setSessionToken(result.sessionId, result.token);
+      navigate(`/join/${result.sessionId}`);
     }
   };
 
@@ -73,7 +76,7 @@ export const PatientJoinEntryPage: React.FC = () => {
                   </p>
                 ) : (
                   <p id={helpId} className="sahayak-join-help">
-                    उदाहरण: /join/your-link या डॉक्टर से मिला पूरा लिंक
+                    उदाहरण: डॉक्टर से मिला पूरा लिंक दर्ज करें जिसमें सत्र पहचान शामिल हो
                   </p>
                 )}
               </div>

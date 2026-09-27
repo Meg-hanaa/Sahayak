@@ -10,6 +10,7 @@ export interface UseConsultationSessionReturn extends ConsultationSessionState {
   setMuted: (muted: boolean) => void;
   setActivityState: (activity: SystemActivityState) => void;
   endConsultation: () => Promise<void>;
+  leaveConsultation: () => Promise<void>;
 }
 
 export function useConsultationSession(
@@ -27,7 +28,7 @@ export function useConsultationSession(
   useEffect(() => {
     adapter.connect(sessionId, role, token);
     return () => {
-      // Disconnect active sockets/streams without destroying instance across StrictMode
+      // Disconnect active sockets/streams and polling without destroying instance across StrictMode
       adapter.disconnect();
     };
   }, [adapter, sessionId, role, token]);
@@ -50,10 +51,15 @@ export function useConsultationSession(
     await adapter.endConsultation();
   }, [adapter]);
 
+  const leaveConsultation = useCallback(async () => {
+    await adapter.leaveConsultation();
+  }, [adapter]);
+
   return {
     ...state,
     setMuted,
     setActivityState,
     endConsultation,
+    leaveConsultation,
   };
 }

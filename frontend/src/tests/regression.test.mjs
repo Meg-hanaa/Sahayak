@@ -43,32 +43,43 @@ globalThis.cancelAnimationFrame = () => {};
 console.log('--- SCENARIO 1: INVITATION PARSER (VALID INPUTS) ---');
 const APP_ORIGIN = 'http://localhost:5173';
 
-// 1A: Relative path with single token segment
-const res1A = parseInvitationInput('/join/med-token-884', APP_ORIGIN);
+// 1A: Relative path with sessionId and query token
+const res1A = parseInvitationInput('/join/med-session-884?token=med-token-884', APP_ORIGIN);
 assert.strictEqual(res1A.ok, true);
+assert.strictEqual(res1A.sessionId, 'med-session-884');
 assert.strictEqual(res1A.token, 'med-token-884');
 
-// 1B: Relative path with single trailing slash
-const res1B = parseInvitationInput('/join/med-token-884/', APP_ORIGIN);
+// 1B: Relative path with trailing slash on path and query token
+const res1B = parseInvitationInput('/join/med-session-884/?token=med-token-884', APP_ORIGIN);
 assert.strictEqual(res1B.ok, true);
+assert.strictEqual(res1B.sessionId, 'med-session-884');
 assert.strictEqual(res1B.token, 'med-token-884');
 
 // 1C: Full absolute URL matching current origin
-const res1C = parseInvitationInput('http://localhost:5173/join/dr-sharma-991', APP_ORIGIN);
+const res1C = parseInvitationInput('http://localhost:5173/join/dr-session-991?token=dr-sharma-991', APP_ORIGIN);
 assert.strictEqual(res1C.ok, true);
+assert.strictEqual(res1C.sessionId, 'dr-session-991');
 assert.strictEqual(res1C.token, 'dr-sharma-991');
 
-// 1D: Case preservation of token
-const res1D = parseInvitationInput('/join/Rx_Special_Case-123', APP_ORIGIN);
+// 1D: Case preservation of sessionId and token
+const res1D = parseInvitationInput('/join/Rx_Special_Session-123?token=Rx_Special_Case-123', APP_ORIGIN);
 assert.strictEqual(res1D.ok, true);
+assert.strictEqual(res1D.sessionId, 'Rx_Special_Session-123');
 assert.strictEqual(res1D.token, 'Rx_Special_Case-123');
 
-// 1E: Preserves valid URI-encoded characters
-const res1E = parseInvitationInput('/join/consultation%20patient-42', APP_ORIGIN);
+// 1E: Preserves valid query-based invitation format
+const res1E = parseInvitationInput('/join?session=consultation%20session-42&token=patient-token-42', APP_ORIGIN);
 assert.strictEqual(res1E.ok, true);
-assert.strictEqual(res1E.token, 'consultation%20patient-42');
+assert.strictEqual(res1E.sessionId, 'consultation session-42');
+assert.strictEqual(res1E.token, 'patient-token-42');
 
-console.log('✓ Valid relative paths, URLs, trailing slashes, and casing correctly accepted.');
+// 1F: Rejection of legacy Phase 3 links missing session ID with clear explanation
+const res1F = parseInvitationInput('/join/legacy-token-only', APP_ORIGIN);
+assert.strictEqual(res1F.ok, false);
+assert.strictEqual(res1F.errorCode, 'missing_session_id');
+assert.match(res1F.error, /सत्र पहचान/);
+
+console.log('✓ Valid relative paths, URLs, trailing slashes, casing, and legacy link rejections correctly handled.');
 
 // ---------------------------------------------------------------------------
 // SCENARIO 2: INVITATION PARSER - STRICT REJECTIONS & EDGE CASES

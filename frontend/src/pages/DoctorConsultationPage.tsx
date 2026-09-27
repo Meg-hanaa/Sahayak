@@ -6,14 +6,18 @@ import { LiveTurnDisplay } from '../components/LiveTurnDisplay';
 import { ConversationTranscript } from '../components/ConversationTranscript';
 import { ConsultationControls } from '../components/ConsultationControls';
 import { useConsultationSession } from '../hooks/useConsultationSession';
+import { getSessionToken } from '../utils/tokenStorage';
 import './DoctorConsultationPage.css';
 
 export const DoctorConsultationPage: React.FC = () => {
   const { sessionId = 'demo-session' } = useParams<{ sessionId: string }>();
+
+  // Retrieve token from sessionStorage or query param
   const token =
-    typeof window !== 'undefined'
+    (typeof window !== 'undefined' ? getSessionToken(sessionId) : null) ||
+    (typeof window !== 'undefined'
       ? new URLSearchParams(window.location.search).get('token') || undefined
-      : undefined;
+      : undefined);
 
   const session = useConsultationSession(sessionId, 'doctor', token);
 
@@ -22,6 +26,7 @@ export const DoctorConsultationPage: React.FC = () => {
   };
 
   const isEnded = session.status === 'ended';
+  const isError = session.status === 'error';
 
   return (
     <div className="sahayak-doctor-room" lang="en">
@@ -32,17 +37,39 @@ export const DoctorConsultationPage: React.FC = () => {
         participantConnectionStatus={session.patient.connectionStatus}
         isFixture={session.isFixture}
         fixtureNotice={session.fixtureNotice}
-        onEndClick={!isEnded ? session.endConsultation : undefined}
+        onEndClick={!isEnded && !isError ? session.endConsultation : undefined}
       />
 
       <main id="main-content" className="sahayak-doctor-room__main">
         <Container size="lg">
-          {/* Ended Session View */}
-          {isEnded ? (
+          {/* Error State View (No silent fallback to fixtures) */}
+          {isError ? (
+            <div className="sahayak-doctor-room__ended-card" role="alert">
+              <h2 className="sahayak-doctor-room__ended-title">
+                Unable to Access Consultation
+              </h2>
+              <p className="sahayak-doctor-room__ended-desc">
+                {session.errorMessage ||
+                  'The consultation session could not be found or your access token is missing.'}
+              </p>
+              <div className="sahayak-doctor-room__ended-actions">
+                <Link to="/consultation/new" className="sahayak-doctor-room__link-btn">
+                  Return to Preparation
+                </Link>
+                <Link
+                  to="/"
+                  className="sahayak-doctor-room__link-btn sahayak-doctor-room__link-btn--secondary"
+                >
+                  Return to Home
+                </Link>
+              </div>
+            </div>
+          ) : isEnded ? (
+            /* Ended Session View */
             <div className="sahayak-doctor-room__ended-card" role="status">
               <h2 className="sahayak-doctor-room__ended-title">Consultation Ended</h2>
               <p className="sahayak-doctor-room__ended-desc">
-                This consultation session has concluded. Audio interpretation streams have been closed and microphone hardware released.
+                This consultation session has concluded. Connection streams have been closed.
               </p>
               <div className="sahayak-doctor-room__ended-actions">
                 <Link to="/" className="sahayak-doctor-room__link-btn">
@@ -58,7 +85,7 @@ export const DoctorConsultationPage: React.FC = () => {
             </div>
           ) : (
             <>
-              {/* Patient Waiting Warning if not connected */}
+              {/* Patient Waiting Banner if not connected */}
               {session.patient.connectionStatus === 'waiting' && (
                 <div className="sahayak-doctor-room__waiting-banner" role="status">
                   <span className="sahayak-doctor-room__waiting-text">
@@ -87,12 +114,13 @@ export const DoctorConsultationPage: React.FC = () => {
       </main>
 
       {/* Floating/Sticky Bottom Controls */}
-      {!isEnded && (
+      {!isEnded && !isError && (
         <ConsultationControls
           viewerRole="doctor"
           isMuted={session.isMuted}
           onToggleMute={handleToggleMute}
           onEndConsultation={session.endConsultation}
+          liveAudioAvailable={session.liveAudioAvailable}
         />
       )}
     </div>

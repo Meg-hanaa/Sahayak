@@ -9,6 +9,7 @@ export interface ConsultationControlsProps {
   onToggleMute: () => void;
   onEndConsultation: () => void;
   disabled?: boolean;
+  liveAudioAvailable?: boolean;
 }
 
 export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
@@ -17,6 +18,7 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
   onToggleMute,
   onEndConsultation,
   disabled = false,
+  liveAudioAvailable = false,
 }) => {
   const isDoctor = viewerRole === 'doctor';
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -40,19 +42,39 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
     onEndConsultation();
   };
 
+  const isMuteDisabled = disabled || !liveAudioAvailable;
+
   return (
     <>
-      <div className="sahayak-controls" role="toolbar" aria-label={isDoctor ? 'Consultation controls' : 'परामर्श नियंत्रण'}>
+      <div
+        className="sahayak-controls"
+        role="toolbar"
+        aria-label={isDoctor ? 'Consultation controls' : 'परामर्श नियंत्रण'}
+      >
         <div className="sahayak-controls__inner">
           {/* Mute / Unmute Button */}
           <button
             type="button"
-            className={`sahayak-controls__btn sahayak-controls__btn--mute ${isMuted ? 'sahayak-controls__btn--muted' : ''}`}
+            className={`sahayak-controls__btn sahayak-controls__btn--mute ${
+              isMuted ? 'sahayak-controls__btn--muted' : ''
+            }`}
             onClick={onToggleMute}
-            disabled={disabled}
+            disabled={isMuteDisabled}
             aria-pressed={isMuted}
+            aria-disabled={isMuteDisabled}
+            title={
+              !liveAudioAvailable
+                ? isDoctor
+                  ? 'Live speech streaming is not supported by current backend pipeline'
+                  : 'वर्तमान बैकएंड में लाइव ऑडियो स्ट्रीमिंग उपलब्ध नहीं है'
+                : undefined
+            }
             aria-label={
-              isMuted
+              !liveAudioAvailable
+                ? isDoctor
+                  ? 'Microphone mute unavailable: Live speech streaming not connected'
+                  : 'माइक्रोफ़ोन म्यूट अनुपलब्ध: लाइव ऑडियो स्ट्रीमिंग बैकएंड से नहीं जुड़ी है'
+                : isMuted
                 ? isDoctor
                   ? 'Unmute microphone'
                   : 'माइक्रोफ़ोन चालू करें'
@@ -63,7 +85,11 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
           >
             {isMuted ? <MicOff size={20} aria-hidden="true" /> : <Mic size={20} aria-hidden="true" />}
             <span className="sahayak-controls__label">
-              {isMuted
+              {!liveAudioAvailable
+                ? isDoctor
+                  ? 'Mute (Unavailable)'
+                  : 'माइक (अनुपलब्ध)'
+                : isMuted
                 ? isDoctor
                   ? 'Unmute'
                   : 'माइक चालू करें'
@@ -108,8 +134,8 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
             </h3>
             <p id="confirm-modal-desc" className="sahayak-controls__modal-desc">
               {isDoctor
-                ? 'This will conclude the session for both doctor and patient. Audio streams will be closed immediately.'
-                : 'क्या आप परामर्श छोड़ना चाहते हैं? आपका ऑडियो कनेक्शन बंद कर दिया जाएगा।'}
+                ? 'This will conclude the consultation for all participants and close connection streams.'
+                : 'क्या आप परामर्श छोड़ना चाहते हैं? आप इस परामर्श से बाहर आ जाएंगे, जबकि डॉक्टर का सत्र जारी रह सकता है।'}
             </p>
             <div className="sahayak-controls__modal-actions">
               <button
@@ -125,7 +151,7 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
                 className="sahayak-controls__modal-btn sahayak-controls__modal-btn--confirm"
                 onClick={handleConfirmEnd}
               >
-                {isDoctor ? 'Confirm end consultation' : 'हाँ, छोड़ें'}
+                {isDoctor ? 'Confirm end consultation' : 'हाँ, परामर्श छोड़ें'}
               </button>
             </div>
           </div>
