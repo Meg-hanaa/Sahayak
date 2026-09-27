@@ -5,9 +5,12 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID, uuid4
 
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 from sahayak.domain.enums import (
+    AgentDecision,
     ConfirmationOutcome,
     ConnectionStatus,
     LanguageCode,
@@ -16,6 +19,7 @@ from sahayak.domain.enums import (
     ProcessingStatus,
     SafetyState,
     SessionStatus,
+    TurnState,
 )
 from sahayak.domain.safety import CriticalFact
 
@@ -52,6 +56,15 @@ class Turn(BaseModel):
     end_time: datetime | None = None
     processing_status: ProcessingStatus = ProcessingStatus.PENDING
     confidence_data: dict[str, float] | None = None
+    source_language: LanguageCode | None = None
+    target_language: LanguageCode | None = None
+    state: TurnState = TurnState.READY
+    decision: AgentDecision | None = None
+    risk_assessment: RiskAssessment | None = None
+    confirmation: Confirmation | None = None
+    verified_facts: list[VerifiedFact] = Field(default_factory=list)
+    speech_output_text: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class RiskAssessment(BaseModel):
@@ -76,6 +89,8 @@ class Confirmation(BaseModel):
     responder_role: ParticipantRole | None = None
     outcome: ConfirmationOutcome = ConfirmationOutcome.PENDING
     timestamp: datetime
+    attempt_count: int = 1
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class VerifiedFact(BaseModel):
@@ -87,6 +102,8 @@ class VerifiedFact(BaseModel):
     source_wording: str
     translated_wording: str
     confirmation_id: UUID
+    verified_at: datetime | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class Session(BaseModel):

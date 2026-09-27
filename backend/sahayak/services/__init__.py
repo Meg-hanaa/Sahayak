@@ -1,3 +1,11 @@
+from sahayak.services.agent import (
+    AgentOrchestrator,
+    AgentTurnResult,
+    ConfirmationManager,
+    ConfirmationResponseClassifier,
+    ConfirmationStepResult,
+    TurnStateMachine,
+)
 from sahayak.services.clock import Clock, FakeClock, SystemClock
 from sahayak.services.safety import (
     DeterministicSafetyEngine,
@@ -9,7 +17,12 @@ from sahayak.services.sessions import SessionService
 from sahayak.services.store import InMemorySessionStore
 
 __all__ = [
+    "AgentOrchestrator",
+    "AgentTurnResult",
     "Clock",
+    "ConfirmationManager",
+    "ConfirmationResponseClassifier",
+    "ConfirmationStepResult",
     "DeterministicSafetyEngine",
     "FakeClock",
     "InMemorySessionStore",
@@ -18,4 +31,6 @@ __all__ = [
     "SafetyEngineConfig",
     "SessionService",
     "SystemClock",
+    "TurnStateMachine",
 ]
+

@@ -1,6 +1,8 @@
 """Foundational domain models for Sahayak sessions."""
 
 from sahayak.domain.enums import (
+    AgentDecision,
+    AgentState,
     ConfirmationOutcome,
     ConnectionStatus,
     LanguageCode,
@@ -9,6 +11,7 @@ from sahayak.domain.enums import (
     ProcessingStatus,
     SafetyState,
     SessionStatus,
+    TurnState,
 )
 from sahayak.domain.models import (
     AccessGrant,
@@ -34,6 +37,8 @@ from sahayak.domain.translation import (
 
 __all__ = [
     "AccessGrant",
+    "AgentDecision",
+    "AgentState",
     "Confirmation",
     "ConfirmationOutcome",
     "ConnectionStatus",
@@ -53,6 +58,7 @@ __all__ = [
     "TranslationResult",
     "TranslationStatus",
     "Turn",
+    "TurnState",
     "VerifiedFact",
     "make_failure",
     "make_success",

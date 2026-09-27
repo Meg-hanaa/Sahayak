@@ -74,6 +74,12 @@ class ForbiddenSessionActionError(SahayakError):
         super().__init__(message, code="forbidden_session_action", status_code=status.HTTP_403_FORBIDDEN)
 
 
+class ConfirmationNotAllowedError(SahayakError):
+    def __init__(self, message: str = "Confirmation is not allowed for this turn or state") -> None:
+        super().__init__(message, code="confirmation_not_allowed", status_code=status.HTTP_400_BAD_REQUEST)
+
+
+
 def error_payload(*, code: str, message: str, details: Any | None = None) -> dict[str, Any]:
     """Build a consistent error response body."""
 

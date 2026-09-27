@@ -56,4 +56,27 @@ class ConfirmationOutcome(str, Enum):
     PENDING = "pending"
     CONFIRMED = "confirmed"
     REJECTED = "rejected"
+    AMBIGUOUS = "ambiguous"
     UNRESOLVED = "unresolved"
+
+
+class AgentDecision(str, Enum):
+    CONTINUE = "continue"
+    CONFIRM = "confirm"
+    REPEAT = "repeat"
+    ESCALATE = "escalate"
+
+
+class TurnState(str, Enum):
+    READY = "ready"
+    LISTENING = "listening"
+    PROCESSING = "processing"
+    CONFIRMING = "confirming"
+    SPEAKING = "speaking"
+    NEEDS_REPETITION = "needs_repetition"
+    UNRESOLVED = "unresolved"
+    ENDED = "ended"
+
+
+AgentState = TurnState
+

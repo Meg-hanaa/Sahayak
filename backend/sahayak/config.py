@@ -106,6 +106,20 @@ class Settings(BaseSettings):
         default=None,
         validation_alias=AliasChoices("SAFETY_GLOSSARY_PATH", "SAHAYAK_SAFETY_GLOSSARY_PATH"),
     )
+    emergency_instruction_en: str = Field(
+        default="EMERGENCY DETECTED: Automated interpretation paused. Seek immediate emergency medical care or call 112 / 911. Direct clinical intervention required.",
+        validation_alias=AliasChoices("EMERGENCY_INSTRUCTION_EN", "SAHAYAK_EMERGENCY_INSTRUCTION_EN"),
+    )
+    emergency_instruction_hi: str = Field(
+        default="आपातकालीन स्थिति: स्वचालित अनुवाद रोक दिया गया है। कृपया तुरंत आपातकालीन चिकित्सा सहायता लें या 112 पर कॉल करें।",
+        validation_alias=AliasChoices("EMERGENCY_INSTRUCTION_HI", "SAHAYAK_EMERGENCY_INSTRUCTION_HI"),
+    )
+    max_confirmation_attempts: int = Field(
+        default=2,
+        ge=1,
+        validation_alias=AliasChoices("MAX_CONFIRMATION_ATTEMPTS", "SAHAYAK_MAX_CONFIRMATION_ATTEMPTS"),
+    )
+
 
     @field_validator("log_level")
     @classmethod
