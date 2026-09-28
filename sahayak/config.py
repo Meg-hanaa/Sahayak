@@ -32,7 +32,10 @@ class Settings(BaseSettings):
     app_name: str = Field(default="Sahayak", validation_alias=AliasChoices("SAHAYAK_APP_NAME", "APP_NAME"))
     environment: Environment = Field(validation_alias=AliasChoices("SAHAYAK_ENVIRONMENT", "ENVIRONMENT"))
     log_level: str = Field(default="INFO", validation_alias=AliasChoices("SAHAYAK_LOG_LEVEL", "LOG_LEVEL"))
-    cors_origins: list[str] = Field(validation_alias=AliasChoices("SAHAYAK_CORS_ORIGINS", "CORS_ORIGINS"))
+    cors_origins: list[str] = Field(
+        default=["*"],
+        validation_alias=AliasChoices("SAHAYAK_CORS_ORIGINS", "CORS_ORIGINS"),
+    )
     api_prefix: str = Field(default="/api", validation_alias=AliasChoices("SAHAYAK_API_PREFIX", "API_PREFIX"))
     websocket_path: str = Field(
         default="/ws",
@@ -135,13 +138,38 @@ class Settings(BaseSettings):
             raise ValueError(f"log_level must be one of {sorted(allowed)}")
         return normalized
 
-    @field_validator("cors_origins")
+    @field_validator("cors_origins", mode="before")
     @classmethod
-    def require_cors_origins(cls, value: list[str]) -> list[str]:
-        origins = [origin.strip() for origin in value if origin and origin.strip()]
-        if not origins:
-            raise ValueError("At least one CORS origin is required")
-        return origins
+    def parse_cors_origins(cls, value: object) -> list[str]:
+        """Accept a JSON array string, a comma-separated string, a list, or empty/None.
+
+        Railway sometimes delivers env-var values as empty strings when the
+        variable exists but has no content — fall back to wildcard in that case.
+        """
+        import json as _json
+
+        if value is None:
+            return ["*"]
+        if isinstance(value, list):
+            cleaned = [str(o).strip() for o in value if str(o).strip()]
+            return cleaned or ["*"]
+        if isinstance(value, str):
+            stripped = value.strip()
+            if not stripped:
+                return ["*"]
+            # Try JSON first (e.g. '["https://app.vercel.app"]')
+            if stripped.startswith("["):
+                try:
+                    parsed = _json.loads(stripped)
+                    if isinstance(parsed, list):
+                        cleaned = [str(o).strip() for o in parsed if str(o).strip()]
+                        return cleaned or ["*"]
+                except _json.JSONDecodeError:
+                    pass
+            # Fall back to comma-separated (e.g. 'https://a.com,https://b.com')
+            parts = [p.strip() for p in stripped.split(",") if p.strip()]
+            return parts or ["*"]
+        return ["*"]
 
     @field_validator("api_prefix")
     @classmethod
