@@ -71,11 +71,22 @@
   text-decoration: none;
   background-color: var(--color-midnight);
   color: var(--color-snow);
-  transition: background-color var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.sahayak-patient-room__link-btn:visited {
+  color: var(--color-snow);
 }
 
 .sahayak-patient-room__link-btn:hover {
   background-color: var(--color-midnight-hover);
+  color: var(--color-snow);
+  text-decoration: none;
+}
+
+.sahayak-patient-room__link-btn:active {
+  background-color: #0E1214;
+  color: var(--color-snow);
 }
 
 .sahayak-patient-room__link-btn:focus-visible {

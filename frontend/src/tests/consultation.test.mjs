@@ -1142,9 +1142,10 @@ async function runConsultationTests() {
       'Must explain empty transcript honestly'
     );
 
-    // 6C: Mute button disabled / marked unavailable for real sessions
-    const muteBtn = queryByAttr(container, 'aria-label', 'Microphone mute unavailable: Live speech streaming not connected');
-    assert.ok(muteBtn, 'Mute button must be disabled/marked unavailable when live streaming is not connected');
+    // 6C: Mute button is clickable and accessible
+    const muteBtn = queryByAttr(container, 'aria-label', 'Mute microphone');
+    assert.ok(muteBtn, 'Mute button must be present and accessible to toggle microphone state');
+    assert.strictEqual(muteBtn.hasAttribute('disabled'), false, 'Mute button must not be disabled');
 
     // 6D: Clinical prototype disclaimer
     assert.match(fullText, new RegExp(CLINICAL_DISCLAIMER_EN));

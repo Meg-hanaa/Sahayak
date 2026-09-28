@@ -96,20 +96,44 @@
 .sahayak-record__btn--primary {
   background-color: var(--color-midnight);
   color: var(--color-snow);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.sahayak-record__btn--primary:visited {
+  color: var(--color-snow);
 }
 
 .sahayak-record__btn--primary:hover {
   background-color: var(--color-midnight-hover);
+  color: var(--color-snow);
+  text-decoration: none;
+}
+
+.sahayak-record__btn--primary:active {
+  background-color: #0E1214;
+  color: var(--color-snow);
 }
 
 .sahayak-record__btn--secondary {
   background-color: var(--color-snow);
   color: var(--color-midnight);
   border-color: var(--color-ocean);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.sahayak-record__btn--secondary:visited {
+  color: var(--color-midnight);
 }
 
 .sahayak-record__btn--secondary:hover {
   background-color: var(--color-dust);
+  color: var(--color-midnight);
+  text-decoration: none;
+}
+
+.sahayak-record__btn--secondary:active {
+  background-color: var(--color-earth);
+  color: var(--color-midnight);
 }
 
 /* Token Form for Unauthorized state */

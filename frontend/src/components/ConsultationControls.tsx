@@ -22,7 +22,7 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
   onToggleMute,
   onEndConsultation,
   disabled = false,
-  liveAudioAvailable = false,
+  liveAudioAvailable: _liveAudioAvailable = false,
   errorMessage,
   isOpenConfirmModal,
   onOpenConfirmModal,
@@ -79,7 +79,7 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
     }
   };
 
-  const isMuteDisabled = disabled || !liveAudioAvailable;
+  const isMuteDisabled = disabled;
 
   return (
     <>
@@ -100,18 +100,16 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
             aria-pressed={isMuted}
             aria-disabled={isMuteDisabled}
             title={
-              !liveAudioAvailable
+              isMuted
                 ? isDoctor
-                  ? 'Live speech streaming is not supported by current backend pipeline'
-                  : 'वर्तमान बैकएंड में लाइव ऑडियो स्ट्रीमिंग उपलब्ध नहीं है'
-                : undefined
+                  ? 'Unmute microphone'
+                  : 'माइक्रोफ़ोन चालू करें'
+                : isDoctor
+                ? 'Mute microphone'
+                : 'माइक्रोफ़ोन बंद करें'
             }
             aria-label={
-              !liveAudioAvailable
-                ? isDoctor
-                  ? 'Microphone mute unavailable: Live speech streaming not connected'
-                  : 'माइक्रोफ़ोन म्यूट अनुपलब्ध: लाइव ऑडियो स्ट्रीमिंग बैकएंड से नहीं जुड़ी है'
-                : isMuted
+              isMuted
                 ? isDoctor
                   ? 'Unmute microphone'
                   : 'माइक्रोफ़ोन चालू करें'
@@ -122,11 +120,7 @@ export const ConsultationControls: React.FC<ConsultationControlsProps> = ({
           >
             {isMuted ? <MicOff size={20} aria-hidden="true" /> : <Mic size={20} aria-hidden="true" />}
             <span className="sahayak-controls__label">
-              {!liveAudioAvailable
-                ? isDoctor
-                  ? 'Mute (Unavailable)'
-                  : 'माइक (अनुपलब्ध)'
-                : isMuted
+              {isMuted
                 ? isDoctor
                   ? 'Unmute'
                   : 'माइक चालू करें'

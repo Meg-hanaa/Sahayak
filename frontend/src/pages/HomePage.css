@@ -367,7 +367,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: 85% 22%; /* Breathing room above doctor's head while keeping laptop visible */
+    object-position: 85% 25%;
   }
 }
 
@@ -378,11 +378,11 @@
     top: -20px;
     position: relative;
     will-change: transform;
-    object-position: 85% 24%;
+    object-position: 85% 25%;
   }
 }
 
-/* Desktop Scrim - High contrast behind text, fades before doctor/laptop */
+/* Desktop Scrim - High contrast behind text with smooth full-width gradient integration */
 .sahayak-hero-backdrop__scrim {
   position: absolute;
   inset: 0;
@@ -390,9 +390,10 @@
   background: linear-gradient(
     to right,
     rgba(255, 255, 255, 0.98) 0%,
-    rgba(255, 255, 255, 0.92) 34%,
-    rgba(255, 255, 255, 0.35) 46%,
-    rgba(255, 255, 255, 0) 58%
+    rgba(255, 255, 255, 0.94) 38%,
+    rgba(255, 255, 255, 0.55) 56%,
+    rgba(255, 255, 255, 0.15) 74%,
+    rgba(255, 255, 255, 0) 100%
   );
 }
 
@@ -409,18 +410,33 @@
 }
 
 @media (min-width: 768px) {
+  .sahayak-hero-section {
+    min-height: calc(100vh - 80px);
+    min-height: calc(100dvh - 80px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
   .sahayak-hero-inner {
-    min-height: 480px;
-    padding-top: var(--space-10);
-    padding-bottom: var(--space-10);
+    min-height: calc(100vh - 80px);
+    min-height: calc(100dvh - 80px);
+    padding-top: var(--space-8);
+    padding-bottom: var(--space-8);
   }
 }
 
 @media (min-width: 1024px) {
+  .sahayak-hero-section {
+    min-height: calc(100vh - 80px);
+    min-height: calc(100dvh - 80px);
+  }
+
   .sahayak-hero-inner {
-    min-height: 520px;
-    padding-top: var(--space-12);
-    padding-bottom: var(--space-12);
+    min-height: calc(100vh - 80px);
+    min-height: calc(100dvh - 80px);
+    padding-top: var(--space-10);
+    padding-bottom: var(--space-10);
   }
 }
 
@@ -436,7 +452,15 @@
 
 @media (min-width: 768px) {
   .sahayak-hero-content {
-    max-width: 580px; /* ~560-600px desktop constraint */
+    max-width: 600px;
+    gap: var(--space-5);
+  }
+}
+
+@media (min-width: 1024px) {
+  .sahayak-hero-content {
+    max-width: 640px;
+    gap: var(--space-5);
   }
 }
 
@@ -483,42 +507,52 @@
   }
 }
 
-/* Quiet Text Eyebrow (Not a prominent rounded badge) */
+/* Quiet, Dignified Text Eyebrow (No pill badge, no dot) */
 .sahayak-hero-eyebrow {
-  font-size: 0.8125rem; /* ~13px */
+  display: block;
+  font-size: 0.875rem;
   font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.04em;
-  color: var(--color-text-secondary);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  margin-bottom: var(--space-1);
+  color: var(--color-text-secondary);
   line-height: 1.4;
+  margin-bottom: 0;
 }
 
 @media (min-width: 768px) {
   .sahayak-hero-eyebrow {
-    font-size: var(--font-size-sm);
+    font-size: 0.9375rem;
+    letter-spacing: 0.08em;
   }
 }
 
 /* Hero Heading */
 .sahayak-hero-heading {
-  font-size: 1.9375rem; /* ~31px (30-32px on mobile) */
+  font-size: 2.125rem; /* ~34px on mobile */
   font-weight: var(--font-weight-bold);
-  line-height: 1.22;
-  letter-spacing: -0.02em;
+  line-height: 1.18;
+  letter-spacing: -0.025em;
   color: var(--color-midnight);
 }
 
 @media (min-width: 768px) {
   .sahayak-hero-heading {
-    font-size: 2.25rem; /* 36px on tablet */
-    line-height: 1.18;
+    font-size: 2.75rem; /* 44px on tablet */
+    line-height: 1.15;
   }
 }
 
 @media (min-width: 1024px) {
   .sahayak-hero-heading {
-    font-size: 2.625rem; /* 42px on desktop */
+    font-size: 3.25rem; /* 52px on desktop */
+    line-height: 1.12;
+    letter-spacing: -0.03em;
+  }
+}
+
+@media (min-width: 1280px) {
+  .sahayak-hero-heading {
+    font-size: 3.5rem; /* 56px on wide desktop */
   }
 }
 
@@ -529,21 +563,22 @@
 @media (min-width: 768px) {
   .sahayak-hero-heading-break {
     display: block;
+    color: var(--color-midnight);
   }
 }
 
 /* Hero Description */
 .sahayak-hero-description {
-  font-size: 1rem; /* 16px on mobile */
+  font-size: 1.0625rem; /* 17px on mobile */
   line-height: 1.6;
   color: var(--color-text-secondary);
-  max-width: 50ch; /* ~48-52 characters per line */
+  max-width: 52ch;
 }
 
 @media (min-width: 768px) {
   .sahayak-hero-description {
-    font-size: 1.125rem; /* 18px on tablet/desktop */
-    line-height: var(--line-height-relaxed);
+    font-size: 1.1875rem; /* 19px on tablet/desktop */
+    line-height: 1.65;
   }
 }
 
@@ -552,7 +587,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 14px; /* ~12-16px */
+  gap: 14px;
   margin-top: var(--space-2);
 }
 
@@ -566,11 +601,20 @@
 
 .sahayak-hero-btn {
   width: 100%;
-  min-height: 48px;
-  padding: 0.75rem 1.5rem;
-  font-size: var(--font-size-base);
+  min-height: 50px;
+  padding: 0.8125rem 1.625rem;
+  font-size: 1.0625rem;
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 14px rgba(34, 40, 44, 0.12);
   justify-content: center;
   text-align: center;
+  transition: transform var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.sahayak-hero-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(34, 40, 44, 0.18);
 }
 
 @media (min-width: 768px) {
@@ -583,16 +627,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-midnight);
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  min-height: 44px;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-sm);
+  text-decoration: none;
+  min-height: 48px;
+  padding: 0.625rem 1.25rem;
+  border: 1px solid var(--color-dust);
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: var(--radius-md);
   text-align: center;
-  transition: color var(--transition-fast), background-color var(--transition-fast);
+  transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
 }
 
 @media (min-width: 768px) {
@@ -603,7 +651,9 @@
 
 .sahayak-hero-secondary-link:hover {
   color: var(--color-midnight-hover);
-  background-color: rgba(34, 40, 44, 0.05);
+  background-color: var(--color-snow);
+  border-color: var(--color-ocean);
+  transform: translateY(-1px);
 }
 
 .sahayak-hero-secondary-link:focus-visible {

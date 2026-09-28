@@ -70,11 +70,22 @@
   text-decoration: none;
   background-color: var(--color-midnight);
   color: var(--color-snow);
-  transition: background-color var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.sahayak-doctor-room__link-btn:visited {
+  color: var(--color-snow);
 }
 
 .sahayak-doctor-room__link-btn:hover {
   background-color: var(--color-midnight-hover);
+  color: var(--color-snow);
+  text-decoration: none;
+}
+
+.sahayak-doctor-room__link-btn:active {
+  background-color: #0E1214;
+  color: var(--color-snow);
 }
 
 .sahayak-doctor-room__link-btn--secondary {
@@ -83,8 +94,18 @@
   border: 1px solid var(--color-ocean);
 }
 
+.sahayak-doctor-room__link-btn--secondary:visited {
+  color: var(--color-midnight);
+}
+
 .sahayak-doctor-room__link-btn--secondary:hover {
   background-color: var(--color-dust);
+  color: var(--color-midnight);
+}
+
+.sahayak-doctor-room__link-btn--secondary:active {
+  background-color: var(--color-earth);
+  color: var(--color-midnight);
 }
 
 .sahayak-doctor-room__link-btn:focus-visible {

@@ -226,11 +226,28 @@
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   text-decoration: none;
-  transition: background-color var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.sahayak-prep-enter-link:visited {
+  color: var(--color-snow);
 }
 
 .sahayak-prep-enter-link:hover {
   background-color: var(--color-midnight-hover);
+  color: var(--color-snow);
+  text-decoration: none;
+}
+
+.sahayak-prep-enter-link:active {
+  background-color: #0E1214;
+  color: var(--color-snow);
+}
+
+.sahayak-prep-enter-link:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+  color: var(--color-snow);
 }
 
 .sahayak-dev-fixture-link {

@@ -20,9 +20,15 @@
   height: 64px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-3);
   width: 100%;
+}
+
+.sahayak-task-header__brand-group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
 }
 
 .sahayak-task-header__brand {
@@ -56,22 +62,31 @@
   color: var(--color-midnight);
 }
 
+.sahayak-task-header__divider {
+  color: var(--color-ocean);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-regular);
+  user-select: none;
+  margin: 0 2px;
+}
+
 .sahayak-task-header__badge {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-secondary);
-  background-color: var(--color-dust);
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
+  background: transparent;
+  padding: 0;
+  border: none;
+  border-radius: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 180px;
+  max-width: 240px;
   flex-shrink: 1;
 }
 
 @media (max-width: 400px) {
   .sahayak-task-header__badge {
-    max-width: 130px;
+    max-width: 140px;
   }
 }

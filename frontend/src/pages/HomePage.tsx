@@ -279,7 +279,7 @@ export const HomePage: React.FC = () => {
                   isMounted ? 'sahayak-hero-animate sahayak-hero-animate--eyebrow' : ''
                 }`}
               >
-                English ↔ Hindi voice interpretation
+                English ↔ Hindi Voice Interpretation
               </p>
               <h1
                 id="hero-heading"
@@ -298,8 +298,8 @@ export const HomePage: React.FC = () => {
                 }`}
               >
                 An English-speaking doctor and a Hindi-speaking patient can
-                speak naturally, with translated speech and a bilingual
-                transcript.
+                converse naturally, with real-time voice interpretation and a
+                live bilingual transcript.
               </p>
               <div
                 className={`sahayak-hero-actions ${
@@ -316,7 +316,7 @@ export const HomePage: React.FC = () => {
                   to="/join"
                   className="sahayak-hero-secondary-link"
                 >
-                  Have an invite? Join
+                  Have an invite? Join <span aria-hidden="true">→</span>
                 </Link>
               </div>
             </div>

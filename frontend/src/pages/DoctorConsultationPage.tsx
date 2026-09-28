@@ -132,6 +132,7 @@ export const DoctorConsultationPage: React.FC = () => {
                 sessionStatus={session.status}
                 activityState={session.activityState}
                 disabled={isEnded || isError}
+                isMuted={session.isMuted}
               />
 
               {/* Verified Clinical Facts */}

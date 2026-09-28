@@ -72,27 +72,31 @@ export const ConsultationHeader: React.FC<ConsultationHeaderProps> = ({
     <header className="sahayak-consult-header" role="banner">
       <Container size="lg" className="sahayak-consult-header__container">
         <div className="sahayak-consult-header__top">
-          {/* Brand */}
-          <Link
-            to="/"
-            className="sahayak-consult-header__brand"
-            aria-label={isDoctor ? 'Return to Sahayak Home' : 'मुख्य पृष्ठ पर लौटें'}
-          >
-            <img
-              src="/images/logo.png"
-              alt=""
-              aria-hidden="true"
-              className="sahayak-consult-header__logo"
-              width="28"
-              height="28"
-            />
-            <span className="sahayak-consult-header__wordmark">Sahayak</span>
-          </Link>
+          {/* Brand & Role Badge Group */}
+          <div className="sahayak-consult-header__brand-group">
+            <Link
+              to="/"
+              className="sahayak-consult-header__brand"
+              aria-label={isDoctor ? 'Return to Sahayak Home' : 'मुख्य पृष्ठ पर लौटें'}
+            >
+              <img
+                src="/images/logo.png"
+                alt=""
+                aria-hidden="true"
+                className="sahayak-consult-header__logo"
+                width="28"
+                height="28"
+              />
+              <span className="sahayak-consult-header__wordmark">Sahayak</span>
+            </Link>
 
-          {/* Role badge */}
-          <span className="sahayak-consult-header__role-badge">
-            {isDoctor ? 'Doctor Consultation' : 'मरीज़ परामर्श'}
-          </span>
+            <span className="sahayak-consult-header__divider" aria-hidden="true">
+              /
+            </span>
+            <span className="sahayak-consult-header__role-badge">
+              {isDoctor ? 'Doctor Consultation' : 'मरीज़ परामर्श'}
+            </span>
+          </div>
 
           {/* Session ID & Connection Status */}
           <div className="sahayak-consult-header__status-group">

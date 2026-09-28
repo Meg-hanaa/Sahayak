@@ -15,6 +15,7 @@ export interface ConsultationSpeechInputProps {
   sessionStatus?: SessionStatus;
   activityState?: SystemActivityState;
   disabled?: boolean;
+  isMuted?: boolean;
 }
 
 // Compact clinical presets for reliable hackathon demonstrations
@@ -83,6 +84,7 @@ export const ConsultationSpeechInput: React.FC<ConsultationSpeechInputProps> = (
   sessionStatus,
   activityState,
   disabled = false,
+  isMuted = false,
 }) => {
   const isDoctor = role === 'doctor';
   const [text, setText] = useState('');
@@ -118,6 +120,19 @@ export const ConsultationSpeechInput: React.FC<ConsultationSpeechInputProps> = (
       }
     };
   }, []);
+
+  // Automatically abort dictation if microphone is muted from controls
+  useEffect(() => {
+    if (isMuted && isListening && recognitionRef.current) {
+      try {
+        recognitionRef.current.abort();
+      } catch {
+        // ignore
+      }
+      recognitionRef.current = null;
+      setIsListening(false);
+    }
+  }, [isMuted, isListening]);
 
   const handleStartDictation = () => {
     if (!SpeechRecognitionConstructor || isInputDisabled) return;
@@ -335,12 +350,16 @@ export const ConsultationSpeechInput: React.FC<ConsultationSpeechInputProps> = (
               type="button"
               className={`sahayak-speech-input__btn sahayak-speech-input__btn--dictate ${
                 isListening ? 'sahayak-speech-input__btn--listening' : ''
-              }`}
+              } ${isMuted ? 'sahayak-speech-input__btn--muted' : ''}`}
               onClick={handleToggleDictation}
-              disabled={isInputDisabled}
+              disabled={isInputDisabled || isMuted}
               aria-pressed={isListening}
               title={
-                isListening
+                isMuted
+                  ? isDoctor
+                    ? 'Microphone is muted from controls. Unmute to dictate.'
+                    : 'माइक म्यूट है। डिक्टेट करने के लिए अनम्यूट करें।'
+                  : isListening
                   ? isDoctor
                     ? 'Stop dictation'
                     : 'डिक्टेशन रोकें'
@@ -349,7 +368,11 @@ export const ConsultationSpeechInput: React.FC<ConsultationSpeechInputProps> = (
                   : 'हिंदी में वॉइस डिक्टेशन शुरू करें'
               }
               aria-label={
-                isListening
+                isMuted
+                  ? isDoctor
+                    ? 'Microphone is muted. Unmute to dictate.'
+                    : 'माइक म्यूट है। बोलने के लिए अनम्यूट करें।'
+                  : isListening
                   ? isDoctor
                     ? 'Stop voice dictation'
                     : 'वॉइस डिक्टेशन रोकें'
@@ -358,13 +381,19 @@ export const ConsultationSpeechInput: React.FC<ConsultationSpeechInputProps> = (
                   : 'हिंदी में वॉइस डिक्टेशन शुरू करें'
               }
             >
-              {isListening ? (
+              {isMuted ? (
+                <MicOff size={18} aria-hidden="true" />
+              ) : isListening ? (
                 <MicOff size={18} aria-hidden="true" />
               ) : (
                 <Mic size={18} aria-hidden="true" />
               )}
               <span className="sahayak-speech-input__btn-text">
-                {isListening
+                {isMuted
+                  ? isDoctor
+                    ? 'Muted'
+                    : 'म्यूट'
+                  : isListening
                   ? isDoctor
                     ? 'Stop'
                     : 'रोकें'

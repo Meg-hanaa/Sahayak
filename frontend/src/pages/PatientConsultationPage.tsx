@@ -128,6 +128,7 @@ export const PatientConsultationPage: React.FC = () => {
                 sessionStatus={session.status}
                 activityState={session.activityState}
                 disabled={isEnded || isError}
+                isMuted={session.isMuted}
               />
 
               {/* Bilingual Transcript */}
