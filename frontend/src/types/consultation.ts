@@ -109,3 +109,6 @@ export interface ConsultationSessionState {
   emergencyAlert?: EmergencyAlertItem | null;
   repetitionRequest?: RepetitionRequestItem | null;
 }
+
+export * from './record.ts';
+

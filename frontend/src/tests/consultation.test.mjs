@@ -97,7 +97,7 @@ function createMockDom() {
       style: {},
       attributes: new Map(),
       setAttribute: (k, v) => node.attributes.set(k, String(v)),
-      getAttribute: (k) => node.attributes.get(k) || null,
+      getAttribute: (k) => (node.attributes.has(k) ? (node.attributes.get(k) ?? '') : null),
       removeAttribute: (k) => node.attributes.delete(k),
       hasAttribute: (k) => node.attributes.has(k),
       appendChild: (c) => {
@@ -251,7 +251,7 @@ function getAllText(node) {
 
 function queryByAttr(node, attr, val) {
   if (!node) return null;
-  if (node.getAttribute && node.getAttribute(attr) === val) return node;
+  if ((node.getAttribute && node.getAttribute(attr) === val) || node[attr] === val) return node;
   if (node.childNodes) {
     for (const c of node.childNodes) {
       const res = queryByAttr(c, attr, val);
@@ -293,6 +293,8 @@ async function runConsultationTests() {
       pat: './src/pages/PatientConsultationPage.tsx',
       docPrep: './src/pages/DoctorPreparationPage.tsx',
       patPrep: './src/pages/PatientPreparationPage.tsx',
+      rec: './src/pages/ConsultationRecordPage.tsx',
+      speechInput: './src/components/ConsultationSpeechInput.tsx',
     },
     bundle: true,
     format: 'esm',
@@ -305,11 +307,15 @@ async function runConsultationTests() {
   const patFile = pathToFileURL(path.join(outdir, 'pat.js')).href;
   const docPrepFile = pathToFileURL(path.join(outdir, 'docPrep.js')).href;
   const patPrepFile = pathToFileURL(path.join(outdir, 'patPrep.js')).href;
+  const recFile = pathToFileURL(path.join(outdir, 'rec.js')).href;
+  const speechInputFile = pathToFileURL(path.join(outdir, 'speechInput.js')).href;
 
   const { DoctorConsultationPage } = await import(docFile);
   const { PatientConsultationPage } = await import(patFile);
   const { DoctorPreparationPage } = await import(docPrepFile);
   const { PatientPreparationPage } = await import(patPrepFile);
+  const { ConsultationRecordPage } = await import(recFile);
+  const { ConsultationSpeechInput, DOCTOR_QUICK_PHRASES, PATIENT_QUICK_PHRASES } = await import(speechInputFile);
 
   // -------------------------------------------------------------------------
   // TEST 1: SESSION API CLIENT REQUESTS & RESPONSES
@@ -1602,8 +1608,761 @@ async function runConsultationTests() {
     console.log('✓ Phase 6A two-way text interpretation, role isolation, confirmations, verified facts, repetition requests, and emergency alerts verified.');
   }
 
+  // -------------------------------------------------------------------------
+  // TEST 8: BILINGUAL CONSULTATION RECORD PAGE & API INTEGRATION
+  // -------------------------------------------------------------------------
+  console.log('\n--- TEST 8: BILINGUAL CONSULTATION RECORD PAGE & API INTEGRATION ---');
+  {
+    const { doc, win, container, mockSessionStorage } = createMockDom();
+    globalThis.document = doc;
+    globalThis.window = win;
+
+    let recordApiCalled = false;
+    let authHeaderSent = '';
+
+    const mockRecordPayload = {
+      session_id: 'rec-test-101',
+      ordered_turn_ids: ['turn-1', 'turn-2'],
+      verified_fact_ids: ['fact-1'],
+      unresolved_turn_ids: ['turn-3'],
+      generated_at: '2026-09-28T12:00:00Z',
+      conversation: [
+        {
+          turn_id: 'turn-1',
+          speaker_role: 'doctor',
+          source_language: 'en',
+          target_language: 'hi',
+          source_text: 'Take 500mg of paracetamol after meals.',
+          translated_text: 'भोजन के बाद 500 मिलीग्राम पैरासिटामोल लें।',
+          timestamp: '2026-09-28T11:45:00Z',
+          processing_status: 'completed',
+          safety_state: 'verified',
+          retry_count: 0,
+        },
+        {
+          turn_id: 'turn-2',
+          speaker_role: 'patient',
+          source_language: 'hi',
+          target_language: 'en',
+          source_text: 'मुझे दिन में दो बार बुखार आ रहा है।',
+          translated_text: 'I have had a fever twice a day.',
+          timestamp: '2026-09-28T11:46:00Z',
+          processing_status: 'completed',
+          safety_state: 'standard',
+          retry_count: 1,
+        },
+      ],
+      verified_facts: [
+        {
+          fact_id: 'fact-1',
+          turn_id: 'turn-1',
+          category: 'medication',
+          original_source_wording: 'Take 500mg of paracetamol after meals.',
+          translated_wording: 'भोजन के बाद 500 मिलीग्राम पैरासिटामोल लें।',
+          confirmation_reference: 'conf-1234',
+          verified_at: '2026-09-28T11:45:30Z',
+        },
+      ],
+      unresolved_items: [
+        {
+          item_id: 'unres-1',
+          turn_id: 'turn-3',
+          source_wording: 'I also take some other tablets... [muffled]',
+          category: 'medication',
+          reason: 'Speech unclear, speaker did not confirm clarification request.',
+          timestamp: '2026-09-28T11:48:00Z',
+        },
+      ],
+      latency_metrics: {
+        sample_count: 2,
+        min_seconds: 0.85,
+        max_seconds: 1.45,
+        median_seconds: 1.15,
+        p95_seconds: 1.42,
+        target_met: true,
+      },
+    };
+
+    globalThis.fetch = async (url, options = {}) => {
+      const strUrl = String(url);
+      if (strUrl.includes('/api/sessions/rec-test-101/record')) {
+        recordApiCalled = true;
+        authHeaderSent = options.headers?.Authorization || '';
+        return {
+          ok: true,
+          status: 200,
+          json: async () => mockRecordPayload,
+        };
+      }
+      if (strUrl.includes('/api/sessions/rec-404/record')) {
+        return {
+          ok: false,
+          status: 404,
+          json: async () => ({ error: { code: 'session_not_found', message: 'Session not found' } }),
+        };
+      }
+      if (strUrl.includes('/api/sessions/rec-410/record')) {
+        return {
+          ok: false,
+          status: 410,
+          json: async () => ({ error: { code: 'session_expired', message: 'Session has expired' } }),
+        };
+      }
+      if (strUrl.includes('/api/sessions/rec-401/record')) {
+        return {
+          ok: false,
+          status: 401,
+          json: async () => ({ error: { code: 'invalid_access_token', message: 'Invalid or missing token' } }),
+        };
+      }
+      if (strUrl.includes('/api/sessions/rec-empty/record')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            ...mockRecordPayload,
+            session_id: 'rec-empty',
+            conversation: [],
+            verified_facts: [],
+            unresolved_items: [],
+          }),
+        };
+      }
+      return { ok: false, status: 500 };
+    };
+
+    // 8A: Verify sessionApi.getSessionRecord directly
+    const apiRes = await sessionApi.getSessionRecord('rec-test-101', 'test-doc-token');
+    assert.strictEqual(recordApiCalled, true, 'Must call GET /api/sessions/{id}/record');
+    assert.strictEqual(authHeaderSent, 'Bearer test-doc-token', 'Must pass Bearer token in Authorization header');
+    assert.strictEqual(apiRes.session_id, 'rec-test-101');
+    assert.strictEqual(apiRes.verified_facts.length, 1);
+    assert.strictEqual(apiRes.conversation.length, 2);
+
+    // 8B: Render Success State in ConsultationRecordPage
+    mockSessionStorage.setItem('sahayak_token_rec-test-101', 'test-doc-token');
+    const rootSuccess = createRoot(container);
+    await act(async () => {
+      rootSuccess.render(
+        React.createElement(
+          StrictMode,
+          null,
+          React.createElement(
+            MemoryRouter,
+            { initialEntries: ['/record/rec-test-101'] },
+            React.createElement(
+              Routes,
+              null,
+              React.createElement(Route, {
+                path: '/record/:sessionId',
+                element: React.createElement(ConsultationRecordPage),
+              })
+            )
+          )
+        )
+      );
+    });
+
+    const successText = getAllText(container);
+    // Session metadata
+    assert.match(successText, /Consultation Record/, 'Must render Consultation Record title');
+    assert.match(successText, /rec-test-101/, 'Must render session ID');
+    assert.match(successText, /Official Bilingual Record/, 'Must render official record badge');
+    assert.match(successText, /Prototype interpretation aid/, 'Must render clinical prototype notice');
+
+    // Verified facts section
+    assert.match(successText, /Verified Clinical Facts/, 'Must render Verified Clinical Facts heading');
+    assert.match(successText, /Take 500mg of paracetamol after meals\./, 'Must render original source wording');
+    assert.match(successText, /भोजन के बाद 500 मिलीग्राम पैरासिटामोल लें।/, 'Must render translated wording');
+    assert.match(successText, /medication/i, 'Must render category tag');
+    assert.match(successText, /conf-1234/, 'Must render confirmation reference');
+
+    // Unresolved items section
+    assert.match(successText, /Unresolved Items & Clarifications Needed/, 'Must render Unresolved Items section');
+    assert.match(successText, /Speech unclear, speaker did not confirm clarification request\./, 'Must render failure reason');
+
+    // Bilingual conversation turns
+    assert.match(successText, /Doctor \(English\)/, 'Must render Doctor speaker role');
+    assert.match(successText, /Patient \(Hindi\)/, 'Must render Patient speaker role');
+    assert.match(successText, /मुझे दिन में दो बार बुखार आ रहा है।/, 'Must render patient source text');
+    assert.match(successText, /I have had a fever twice a day\./, 'Must render patient translated text');
+    assert.match(successText, /Resolved after 1 retry/, 'Must indicate turn retry resilience');
+
+    // Metrics summary
+    assert.match(successText, /Interpretation Performance & Latency/, 'Must render latency metrics section');
+    assert.match(successText, /Target Met/i, 'Must render target met badge');
+
+    // Action buttons
+    assert.match(successText, /Print \/ Save Record/, 'Must render Print/Save button');
+    assert.match(successText, /New Consultation/, 'Must render New Consultation link');
+
+    await act(async () => {
+      rootSuccess.unmount();
+    });
+
+    // 8C: Render 404 Not Found State
+    const root404 = createRoot(container);
+    await act(async () => {
+      root404.render(
+        React.createElement(
+          StrictMode,
+          null,
+          React.createElement(
+            MemoryRouter,
+            { initialEntries: ['/record/rec-404?token=tok-404'] },
+            React.createElement(
+              Routes,
+              null,
+              React.createElement(Route, {
+                path: '/record/:sessionId',
+                element: React.createElement(ConsultationRecordPage),
+              })
+            )
+          )
+        )
+      );
+    });
+
+    const notFoundText = getAllText(container);
+    assert.match(notFoundText, /Consultation Record Not Found/, 'Must render Record Not Found title');
+    assert.match(notFoundText, /rec-404/, 'Must cite missing session ID');
+
+    await act(async () => {
+      root404.unmount();
+    });
+
+    // 8D: Render 410 Expired State
+    const root410 = createRoot(container);
+    await act(async () => {
+      root410.render(
+        React.createElement(
+          StrictMode,
+          null,
+          React.createElement(
+            MemoryRouter,
+            { initialEntries: ['/record/rec-410?token=tok-410'] },
+            React.createElement(
+              Routes,
+              null,
+              React.createElement(Route, {
+                path: '/record/:sessionId',
+                element: React.createElement(ConsultationRecordPage),
+              })
+            )
+          )
+        )
+      );
+    });
+
+    const expiredText = getAllText(container);
+    assert.match(expiredText, /Consultation Record Expired/, 'Must render Record Expired title');
+    assert.match(expiredText, /retention period/i, 'Must explain clinical data retention policy');
+
+    await act(async () => {
+      root410.unmount();
+    });
+
+    // 8E: Render 401 Unauthorized State & Form
+    const root401 = createRoot(container);
+    await act(async () => {
+      root401.render(
+        React.createElement(
+          StrictMode,
+          null,
+          React.createElement(
+            MemoryRouter,
+            { initialEntries: ['/record/rec-401'] }, // No token supplied
+            React.createElement(
+              Routes,
+              null,
+              React.createElement(Route, {
+                path: '/record/:sessionId',
+                element: React.createElement(ConsultationRecordPage),
+              })
+            )
+          )
+        )
+      );
+    });
+
+    const unauthText = getAllText(container);
+    assert.match(unauthText, /Access Token Required/, 'Must prompt for access token when absent');
+    assert.ok(queryByAttr(container, 'type', 'password'), 'Must render password/token input field');
+
+    await act(async () => {
+      root401.unmount();
+    });
+
+    // 8F: Render Empty Session Record
+    const rootEmpty = createRoot(container);
+    mockSessionStorage.setItem('sahayak_token_rec-empty', 'token-empty');
+    await act(async () => {
+      rootEmpty.render(
+        React.createElement(
+          StrictMode,
+          null,
+          React.createElement(
+            MemoryRouter,
+            { initialEntries: ['/record/rec-empty'] },
+            React.createElement(
+              Routes,
+              null,
+              React.createElement(Route, {
+                path: '/record/:sessionId',
+                element: React.createElement(ConsultationRecordPage),
+              })
+            )
+          )
+        )
+      );
+    });
+
+    const emptyText = getAllText(container);
+    assert.match(emptyText, /Consultation Record/, 'Must render record card');
+    assert.match(emptyText, /No dialogue turns were recorded/, 'Must explain empty conversation history');
+
+    await act(async () => {
+      rootEmpty.unmount();
+    });
+
+    console.log('✓ ConsultationRecordPage successfully handles loading, success, 404 not-found, 410 expired, 401 unauthorized, empty state, and renders full bilingual clinical records.');
+  }
+
+  // -------------------------------------------------------------------------
+  // TEST 9: PHASE 6B LIVE CONSULTATION SPEECH INPUT & DICTATION
+  // -------------------------------------------------------------------------
+  console.log('\n--- TEST 9: PHASE 6B LIVE CONSULTATION SPEECH INPUT & DICTATION ---');
+  {
+    // 9A: ConsultationSpeechInput Unit Tests (Doctor & Patient roles, phrase populating, dispatch, reset)
+    const { doc, win, container, mockSessionStorage } = createMockDom();
+    globalThis.document = doc;
+    globalThis.window = win;
+
+    let dispatchedText = null;
+    const mockSend = (t) => {
+      dispatchedText = t;
+      return true;
+    };
+
+    // Render standalone Doctor input
+    const rootDocInput = createRoot(container);
+    await act(async () => {
+      rootDocInput.render(
+        React.createElement(ConsultationSpeechInput, {
+          role: 'doctor',
+          onSendSpeech: mockSend,
+          connectionStatus: 'connected',
+          sessionStatus: 'active',
+          activityState: 'idle',
+        })
+      );
+    });
+
+    const docInputText = getAllText(container);
+    assert.match(docInputText, /Quick phrases:/, 'Doctor input must render quick phrases header');
+    assert.match(docInputText, /How long have you had this fever\?/, 'Must render first doctor preset phrase');
+    assert.match(docInputText, /Take this medicine twice a day after food\./, 'Must render second doctor preset phrase');
+
+    // Click quick phrase button
+    const phraseBtns = queryAllByAttr(container, 'type', 'button').filter((b) =>
+      b.getAttribute('class')?.includes('sahayak-speech-input__chip')
+    );
+    assert.strictEqual(phraseBtns.length, 2, 'Doctor must have 2 quick phrases');
+
+    await act(async () => {
+      phraseBtns[0].dispatchEvent({ type: 'click' });
+    });
+
+    // Clicking phrase populates textarea but does NOT automatically send
+    const textarea = queryByAttr(container, 'id', 'sahayak-speech-textarea-doctor');
+    assert.ok(textarea, 'Doctor textarea must be present');
+    assert.strictEqual(textarea.value, DOCTOR_QUICK_PHRASES[0], 'Quick phrase must populate textarea');
+    assert.strictEqual(dispatchedText, null, 'Populating quick phrase must NOT send automatically');
+
+    // Submit via Send button
+    const sendBtn = queryAllByAttr(container, 'type', 'button').find((b) =>
+      b.getAttribute('class')?.includes('sahayak-speech-input__btn--send')
+    );
+    assert.ok(sendBtn, 'Send button must be present');
+
+    await act(async () => {
+      sendBtn.dispatchEvent({ type: 'click' });
+    });
+
+    assert.strictEqual(dispatchedText, DOCTOR_QUICK_PHRASES[0], 'Send button must dispatch speech text');
+    assert.strictEqual(textarea.value, '', 'Input must be cleared after successful dispatch');
+
+    // 9B: Whitespace-only submission is blocked
+    dispatchedText = null;
+    await act(async () => {
+      textarea.value = '   \t  \n  ';
+      textarea.dispatchEvent({ type: 'change', target: { value: '   \t  \n  ' } });
+    });
+    await act(async () => {
+      sendBtn.dispatchEvent({ type: 'click' });
+    });
+    assert.strictEqual(dispatchedText, null, 'Whitespace-only submission must be blocked');
+
+    // 9C: Disconnected state disables input and renders warning notice
+    await act(async () => {
+      rootDocInput.render(
+        React.createElement(ConsultationSpeechInput, {
+          role: 'doctor',
+          onSendSpeech: mockSend,
+          connectionStatus: 'disconnected',
+          sessionStatus: 'active',
+          activityState: 'idle',
+        })
+      );
+    });
+
+    const disconnText = getAllText(container);
+    assert.match(disconnText, /Disconnected from consultation session/, 'Must explain disconnected state');
+    const sendBtnDisconn = queryAllByAttr(container, 'type', 'button').find((b) =>
+      b.getAttribute('class')?.includes('sahayak-speech-input__btn--send')
+    );
+    assert.ok(sendBtnDisconn.disabled || sendBtnDisconn.getAttribute('disabled') !== null, 'Send button must be disabled when disconnected');
+
+    await act(async () => {
+      rootDocInput.unmount();
+    });
+
+    // 9D: Patient role renders Hindi quick phrases and submits Hindi text
+    let patDispatchedText = null;
+    const patSend = (t) => {
+      patDispatchedText = t;
+      return true;
+    };
+
+    const rootPatInput = createRoot(container);
+    await act(async () => {
+      rootPatInput.render(
+        React.createElement(ConsultationSpeechInput, {
+          role: 'patient',
+          onSendSpeech: patSend,
+          connectionStatus: 'connected',
+          sessionStatus: 'active',
+          activityState: 'idle',
+        })
+      );
+    });
+
+    const patInputText = getAllText(container);
+    assert.match(patInputText, /त्वरित वाक्य:/, 'Patient input must render Hindi quick phrases header');
+    assert.match(patInputText, /मुझे दो दिन से बुखार है/, 'Must render first Hindi preset phrase');
+    assert.match(patInputText, /मुझे इस दवा से एलर्जी है।/, 'Must render second Hindi preset phrase');
+
+    const patPhraseBtns = queryAllByAttr(container, 'type', 'button').filter((b) =>
+      b.getAttribute('class')?.includes('sahayak-speech-input__chip')
+    );
+    assert.strictEqual(patPhraseBtns.length, 2, 'Patient must have 2 quick phrases');
+
+    await act(async () => {
+      patPhraseBtns[0].dispatchEvent({ type: 'click' });
+    });
+
+    const patTextarea = queryByAttr(container, 'id', 'sahayak-speech-textarea-patient');
+    assert.strictEqual(patTextarea.value, PATIENT_QUICK_PHRASES[0], 'Hindi phrase must populate textarea');
+    assert.strictEqual(patDispatchedText, null, 'Hindi phrase must NOT send automatically');
+
+    const patSendBtn = queryAllByAttr(container, 'type', 'button').find((b) =>
+      b.getAttribute('class')?.includes('sahayak-speech-input__btn--send')
+    );
+    await act(async () => {
+      patSendBtn.dispatchEvent({ type: 'click' });
+    });
+
+    assert.strictEqual(patDispatchedText, PATIENT_QUICK_PHRASES[0], 'Send button must dispatch Hindi text');
+    assert.strictEqual(patTextarea.value, '', 'Hindi textarea must clear after dispatch');
+
+    await act(async () => {
+      rootPatInput.unmount();
+    });
+
+    // 9E: Progressive Enhancement - Web Speech API
+    // Unsupported browser:
+    win.SpeechRecognition = undefined;
+    win.webkitSpeechRecognition = undefined;
+    const rootUnsupported = createRoot(container);
+    await act(async () => {
+      rootUnsupported.render(
+        React.createElement(ConsultationSpeechInput, {
+          role: 'doctor',
+          onSendSpeech: mockSend,
+          connectionStatus: 'connected',
+          sessionStatus: 'active',
+        })
+      );
+    });
+
+    const dictateBtnUnsupported = queryAllByAttr(container, 'type', 'button').find((b) =>
+      b.getAttribute('class')?.includes('sahayak-speech-input__btn--dictate')
+    );
+    assert.strictEqual(dictateBtnUnsupported, undefined, 'Must not render broken mic button when SpeechRecognition is unsupported');
+
+    await act(async () => {
+      rootUnsupported.unmount();
+    });
+
+    // Supported browser:
+    class MockSpeechRecognition {
+      static instances = [];
+      constructor() {
+        this.continuous = false;
+        this.interimResults = true;
+        this.lang = '';
+        this.onstart = null;
+        this.onresult = null;
+        this.onerror = null;
+        this.onend = null;
+        this.aborted = false;
+        MockSpeechRecognition.instances.push(this);
+      }
+      start() {
+        if (this.onstart) this.onstart({});
+      }
+      stop() {
+        if (this.onend) this.onend({});
+      }
+      abort() {
+        this.aborted = true;
+        if (this.onend) this.onend({});
+      }
+    }
+
+    win.SpeechRecognition = MockSpeechRecognition;
+    const rootSupported = createRoot(container);
+    await act(async () => {
+      rootSupported.render(
+        React.createElement(ConsultationSpeechInput, {
+          role: 'doctor',
+          onSendSpeech: mockSend,
+          connectionStatus: 'connected',
+          sessionStatus: 'active',
+        })
+      );
+    });
+
+    const dictateBtnSupported = queryAllByAttr(container, 'type', 'button').find((b) =>
+      b.getAttribute('class')?.includes('sahayak-speech-input__btn--dictate')
+    );
+    assert.ok(dictateBtnSupported, 'Must render dictation button when SpeechRecognition is supported');
+
+    // Start dictation
+    await act(async () => {
+      dictateBtnSupported.dispatchEvent({ type: 'click' });
+    });
+
+    const activeRec = MockSpeechRecognition.instances[MockSpeechRecognition.instances.length - 1];
+    assert.ok(activeRec, 'Must instantiate SpeechRecognition');
+    assert.strictEqual(activeRec.lang, 'en-US', 'Doctor dictation language must default to en-US');
+
+    const listeningBadge = getAllText(container);
+    assert.match(listeningBadge, /Listening in English/, 'Must indicate active dictation');
+
+    // Simulate recognition result
+    await act(async () => {
+      activeRec.onresult({
+        resultIndex: 0,
+        results: [
+          [{ transcript: 'Patient has reported mild chest pain', confidence: 0.95 }],
+        ],
+      });
+    });
+
+    const supportedTextarea = queryByAttr(container, 'id', 'sahayak-speech-textarea-doctor');
+    assert.strictEqual(supportedTextarea.value, 'Patient has reported mild chest pain', 'Dictation result must populate textarea for review');
+
+    // Stop dictation
+    await act(async () => {
+      dictateBtnSupported.dispatchEvent({ type: 'click' });
+    });
+    assert.ok(!getAllText(container).includes('Listening in English'), 'Listening badge must be removed on stop');
+
+    // Graceful error handling (permission denied)
+    await act(async () => {
+      dictateBtnSupported.dispatchEvent({ type: 'click' });
+    });
+    const errorRec = MockSpeechRecognition.instances[MockSpeechRecognition.instances.length - 1];
+    await act(async () => {
+      errorRec.onerror({ error: 'not-allowed' });
+    });
+
+    const errorMsg = getAllText(container);
+    assert.match(errorMsg, /Microphone permission was denied/, 'Must display accessible permission error');
+
+    // Unmount cleanup when active
+    await act(async () => {
+      dictateBtnSupported.dispatchEvent({ type: 'click' });
+    });
+    const unmountRec = MockSpeechRecognition.instances[MockSpeechRecognition.instances.length - 1];
+    await act(async () => {
+      rootSupported.unmount();
+    });
+    assert.strictEqual(unmountRec.aborted, true, 'Unmounting must abort active SpeechRecognition');
+
+    // 9F: Full Integration in DoctorConsultationPage
+    mockSessionStorage.setItem('sahayak_token_doc-room-9', 'token-doc-room-9');
+    globalThis.fetch = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        session_id: 'doc-room-9',
+        status: 'active',
+        created_at: '2026-09-28T10:00:00Z',
+        doctor_language: 'en',
+        patient_language: 'hi',
+        retention_expires_at: '2026-09-28T10:30:00Z',
+        participants: [
+          { participant_id: 'p-doc', role: 'doctor', connection_status: 'connected', microphone_status: 'granted' },
+          { participant_id: 'p-pat', role: 'patient', connection_status: 'connected', microphone_status: 'granted' },
+        ],
+      }),
+    });
+
+    const rootDocRoom = createRoot(container);
+    await act(async () => {
+      rootDocRoom.render(
+        React.createElement(
+          StrictMode,
+          null,
+          React.createElement(
+            MemoryRouter,
+            { initialEntries: ['/doctor/doc-room-9'] },
+            React.createElement(
+              Routes,
+              null,
+              React.createElement(Route, {
+                path: '/doctor/:sessionId',
+                element: React.createElement(DoctorConsultationPage),
+              })
+            )
+          )
+        )
+      );
+    });
+
+    // Wait for mock WebSocket connection inside act
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 30));
+    });
+
+    // Find quick phrases in Doctor Consultation room
+    const docRoomChips = queryAllByAttr(container, 'type', 'button').filter((b) =>
+      b.getAttribute('class')?.includes('sahayak-speech-input__chip')
+    );
+    assert.ok(docRoomChips.length >= 2, 'Doctor room must render quick phrases');
+
+    await act(async () => {
+      docRoomChips[1].dispatchEvent({ type: 'click' });
+    });
+
+    const docRoomTextarea = queryByAttr(container, 'id', 'sahayak-speech-textarea-doctor');
+    assert.strictEqual(docRoomTextarea.value, DOCTOR_QUICK_PHRASES[1]);
+
+    const docRoomSendBtn = queryAllByAttr(container, 'type', 'button').find((b) =>
+      b.getAttribute('class')?.includes('sahayak-speech-input__btn--send')
+    );
+    assert.ok(docRoomSendBtn, 'Doctor room must have send button');
+
+    await act(async () => {
+      docRoomSendBtn.dispatchEvent({ type: 'click' });
+    });
+
+    // Verify WebSocket message dispatched from doctor consultation room
+    const latestDocWs = MockWebSocket.instances[MockWebSocket.instances.length - 1];
+    assert.ok(latestDocWs.sentMessages.length > 0, 'WebSocket must have sent message');
+    const sentPayload = JSON.parse(latestDocWs.sentMessages[latestDocWs.sentMessages.length - 1]);
+    assert.strictEqual(sentPayload.type, 'speech');
+    assert.strictEqual(sentPayload.text, DOCTOR_QUICK_PHRASES[1]);
+    assert.strictEqual(docRoomTextarea.value, '', 'Doctor room textarea must be cleared after sending');
+
+    await act(async () => {
+      rootDocRoom.unmount();
+    });
+
+    // 9G: Full Integration in PatientConsultationPage
+    mockSessionStorage.setItem('sahayak_token_pat-room-9', 'token-pat-room-9');
+    globalThis.fetch = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        session_id: 'pat-room-9',
+        status: 'active',
+        created_at: '2026-09-28T10:00:00Z',
+        doctor_language: 'en',
+        patient_language: 'hi',
+        retention_expires_at: '2026-09-28T10:30:00Z',
+        participants: [
+          { participant_id: 'p-doc', role: 'doctor', connection_status: 'connected', microphone_status: 'granted' },
+          { participant_id: 'p-pat', role: 'patient', connection_status: 'connected', microphone_status: 'granted' },
+        ],
+      }),
+    });
+
+    const rootPatRoom = createRoot(container);
+    await act(async () => {
+      rootPatRoom.render(
+        React.createElement(
+          StrictMode,
+          null,
+          React.createElement(
+            MemoryRouter,
+            { initialEntries: ['/patient/pat-room-9'] },
+            React.createElement(
+              Routes,
+              null,
+              React.createElement(Route, {
+                path: '/patient/:sessionId',
+                element: React.createElement(PatientConsultationPage),
+              })
+            )
+          )
+        )
+      );
+    });
+
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 30));
+    });
+
+    const patRoomChips = queryAllByAttr(container, 'type', 'button').filter((b) =>
+      b.getAttribute('class')?.includes('sahayak-speech-input__chip')
+    );
+    assert.ok(patRoomChips.length >= 2, 'Patient room must render Hindi quick phrases');
+
+    await act(async () => {
+      patRoomChips[0].dispatchEvent({ type: 'click' });
+    });
+
+    const patRoomTextarea = queryByAttr(container, 'id', 'sahayak-speech-textarea-patient');
+    assert.strictEqual(patRoomTextarea.value, PATIENT_QUICK_PHRASES[0]);
+
+    const patRoomSendBtn = queryAllByAttr(container, 'type', 'button').find((b) =>
+      b.getAttribute('class')?.includes('sahayak-speech-input__btn--send')
+    );
+    assert.ok(patRoomSendBtn, 'Patient room must have send button');
+
+    await act(async () => {
+      patRoomSendBtn.dispatchEvent({ type: 'click' });
+    });
+
+    const latestPatWs = MockWebSocket.instances[MockWebSocket.instances.length - 1];
+    assert.ok(latestPatWs.sentMessages.length > 0, 'Patient WebSocket must have sent message');
+    const sentPatPayload = JSON.parse(latestPatWs.sentMessages[latestPatWs.sentMessages.length - 1]);
+    assert.strictEqual(sentPatPayload.type, 'speech');
+    assert.strictEqual(sentPatPayload.text, PATIENT_QUICK_PHRASES[0]);
+    assert.strictEqual(patRoomTextarea.value, '', 'Patient room textarea must be cleared after sending');
+
+    await act(async () => {
+      rootPatRoom.unmount();
+    });
+
+    console.log('✓ Phase 6B Consultation speech input, quick phrases, Web Speech API progressive enhancement, and consultation room WebSocket integration verified.');
+  }
+
   console.log('\n================================================================');
-  console.log('ALL PHASE 4 & PHASE 6A TESTS PASSED WITH 0 ERRORS');
+  console.log('ALL FRONTEND REGRESSION, LIFECYCLE & RECORD TESTS PASSED');
   console.log('================================================================\n');
 }
 

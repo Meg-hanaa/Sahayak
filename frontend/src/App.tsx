@@ -6,10 +6,8 @@ import { PatientJoinEntryPage } from './pages/PatientJoinEntryPage';
 import { PatientPreparationPage } from './pages/PatientPreparationPage';
 import { DoctorConsultationPage } from './pages/DoctorConsultationPage';
 import { PatientConsultationPage } from './pages/PatientConsultationPage';
-import {
-  ConsultationRecordPage,
-  NotFoundPage,
-} from './pages/PlaceholderPage';
+import { ConsultationRecordPage } from './pages/ConsultationRecordPage';
+import { NotFoundPage } from './pages/PlaceholderPage';
 
 // Lazy-load development-only preview pages so they are never eagerly imported in production
 const FoundationPreviewPage = import.meta.env.DEV

@@ -1,0 +1,290 @@
+/* ==========================================================================
+   Consultation Speech Input & Dictation Styles
+   ========================================================================== */
+
+.sahayak-speech-input {
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-card);
+  transition: border-color var(--transition-fast);
+}
+
+.sahayak-speech-input:focus-within {
+  border-color: var(--color-border-default);
+}
+
+/* Quick Phrases Row */
+.sahayak-speech-input__phrases {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.sahayak-speech-input__phrases-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.sahayak-speech-input__phrases-list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.sahayak-speech-input__chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-tight);
+  color: var(--color-midnight);
+  background-color: var(--color-surface-base);
+  border: 1px solid var(--color-dust);
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.sahayak-speech-input__chip:hover:not(:disabled) {
+  background-color: var(--color-ocean-subtle);
+  border-color: var(--color-ocean);
+}
+
+.sahayak-speech-input__chip:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.sahayak-speech-input__chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Alerts and Notices */
+.sahayak-speech-input__notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--space-3);
+}
+
+.sahayak-speech-input__notice--warning {
+  background-color: var(--color-warning-bg);
+  border: 1px solid var(--color-warning);
+  color: var(--color-warning);
+}
+
+.sahayak-speech-input__error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--space-3);
+}
+
+/* Dictation Live Indicator */
+.sahayak-speech-input__listening-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background-color: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-3);
+}
+
+.sahayak-speech-input__pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-error);
+  animation: sahayak-pulse 1.2s infinite ease-in-out;
+}
+
+@keyframes sahayak-pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+}
+
+/* Box and Textarea */
+.sahayak-speech-input__box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sahayak-speech-input__sr-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sahayak-speech-input__textarea {
+  width: 100%;
+  min-height: 58px;
+  padding: var(--space-3);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--color-midnight);
+  background-color: var(--color-snow);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  resize: vertical;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.sahayak-speech-input__textarea:focus {
+  outline: none;
+  border-color: var(--color-border-strong);
+  box-shadow: 0 0 0 2px var(--color-dust);
+}
+
+.sahayak-speech-input__textarea:disabled {
+  background-color: var(--color-surface-base);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+/* Actions Row */
+.sahayak-speech-input__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.sahayak-speech-input__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 42px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.sahayak-speech-input__btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.sahayak-speech-input__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Dictate Button */
+.sahayak-speech-input__btn--dictate {
+  background-color: var(--color-surface-base);
+  color: var(--color-midnight);
+  border-color: var(--color-ocean);
+}
+
+.sahayak-speech-input__btn--dictate:hover:not(:disabled) {
+  background-color: var(--color-dust);
+}
+
+.sahayak-speech-input__btn--listening {
+  background-color: var(--color-error-bg);
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.sahayak-speech-input__btn--listening:hover:not(:disabled) {
+  background-color: #FCE8E8;
+}
+
+/* Send Button */
+.sahayak-speech-input__btn--send {
+  background-color: var(--color-midnight);
+  color: var(--color-snow);
+  border-color: var(--color-midnight);
+}
+
+.sahayak-speech-input__btn--send:hover:not(:disabled) {
+  background-color: var(--color-midnight-hover);
+}
+
+.sahayak-speech-input__btn-text {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 480px) {
+  .sahayak-speech-input {
+    padding: var(--space-3);
+  }
+
+  .sahayak-speech-input__phrases {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .sahayak-speech-input__phrases-list {
+    width: 100%;
+  }
+
+  .sahayak-speech-input__chip {
+    flex: 1 1 auto;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .sahayak-speech-input__actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .sahayak-speech-input__btn {
+    flex: 1;
+  }
+}

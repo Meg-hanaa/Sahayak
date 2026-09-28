@@ -53,6 +53,31 @@ This package contains the React 19, Vite, and TypeScript frontend application.
   - Unknown Event Safety: Safely ignores unhandled event types without dropping the WebSocket connection or corrupting state.
   - Development Test Harness: Includes a clearly labeled dev-only speech simulator at `/dev/setup` (completely omitted from production consultation rooms).
 
+### Phase 6B: Consultation Room Speech Input & Progressive Dictation
+
+- **Reusable Speech & Message Input (`ConsultationSpeechInput`)**: Integrated directly into `/doctor/:sessionId` and `/patient/:sessionId`.
+- **Direct Role-Aware Input**: Doctor inputs English clinical instructions; patient inputs Hindi queries with Enter to send and Shift+Enter for multiline input.
+- **Progressive Enhancement Web Speech API**:
+  - Leverages `window.SpeechRecognition` / `window.webkitSpeechRecognition` when available in the browser.
+  - Doctor defaults to `en-US`; patient defaults to `hi-IN`.
+  - When speech recognition is unsupported, gracefully hides the dictation toggle without showing broken controls or degrading text input.
+  - Places transcribed text into the editable input field allowing review before dispatch.
+  - Gracefully handles permission denials (`not-allowed`) and aborts recognition cleanly on unmount.
+- **Hackathon Quick Demo Phrases**: Provides compact, one-tap preset phrases per role (e.g. Doctor: *"How long have you had this fever?"*, *"Take this medicine twice a day after food."*; Patient: *"मुझे दो दिन से बुखार है"*, *"मुझे इस दवा से एलर्जी है।"*). Clicking populates the input without auto-dispatching.
+- **Connection & Activity Resilience**: Blocks empty or whitespace-only messages, clears input upon confirmed dispatch, disables sending during disconnections, and shows live processing feedback.
+
+### Phase 7: Bilingual Consultation Record (`/record/:sessionId`)
+
+- **Bilingual Clinical Record Interface**: Comprehensive post-consultation view for doctors and clinical reviewers.
+- **REST Integration**: Connects to `GET /api/sessions/{session_id}/record` passing Bearer token authentication.
+- **Verified Clinical Facts Section**: Prominently highlights facts explicitly verified during the session with category badges, original source wording, translated wording, and confirmation reference IDs.
+- **Unresolved Statements Section**: Flagged with accessible warning indicators for statements requiring clinical follow-up.
+- **Turn-by-Turn Bilingual Conversation**: Chronological transcript preserving original and interpreted dialogue, safety states, and turn resilience metrics.
+- **Latency & Performance Metrics**: Displays speech-to-output latency distribution and target met indicators when instrumented.
+- **Comprehensive Lifecycle States**: Dedicated handling for Loading, 404 (Not Found), 410 (Expired Data Retention), 401 (Missing/Invalid Token with manual entry), 500 (Error with Retry), and Empty Record.
+- **Responsive & Print-Ready**: Fluid desktop and mobile views with dedicated `@media print` styles for clean medical record export.
+
+
 
 ---
 
@@ -135,7 +160,7 @@ The frontend can run via same-origin reverse proxy or connect to an external bac
 | `/patient/:sessionId` | **Patient Room** | Hindi (`hi`) | Hindi consultation room, peer status, empty transcript & leave session |
 | `/dev/setup` | **Setup Fixtures** | Both | Dev-only interactive fixture preview (lazy-loaded, excluded from prod) |
 | `/dev/foundation` | **Design System** | English | Dev-only design tokens & component specimen showcase |
-| `/record/:sessionId` | **Session Record** | English | Post-consultation record placeholder (future work) |
+| `/record/:sessionId` | **Session Record** | English | Final bilingual consultation record with verified clinical facts, unresolved items & transcript |
 | `*` | **Not Found (404)** | English | Accessible error fallback page |
 
 ---

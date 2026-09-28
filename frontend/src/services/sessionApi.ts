@@ -4,6 +4,8 @@
  * and domain models in backend/sahayak/domain/enums.py
  */
 
+import type { SessionRecordResponse } from '../types/record.ts';
+
 export type BackendConnectionStatus = 'connected' | 'connecting' | 'disconnected';
 export type BackendMicrophoneStatus = 'unknown' | 'granted' | 'blocked' | 'muted';
 
@@ -170,4 +172,19 @@ export const sessionApi = {
     });
     return handleResponse<SessionResponse>(res);
   },
+
+  /**
+   * Retrieve the final bilingual session record for an authorized session.
+   * Route: GET /api/sessions/{sessionId}/record
+   */
+  async getSessionRecord(sessionId: string, token: string): Promise<SessionRecordResponse> {
+    const res = await fetch(`${getApiBaseUrl()}/api/sessions/${encodeURIComponent(sessionId)}/record`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return handleResponse<SessionRecordResponse>(res);
+  },
 };
+

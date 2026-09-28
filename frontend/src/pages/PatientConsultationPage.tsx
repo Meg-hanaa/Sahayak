@@ -5,6 +5,7 @@ import { ConsultationHeader } from '../components/ConsultationHeader';
 import { LiveTurnDisplay } from '../components/LiveTurnDisplay';
 import { ConversationTranscript } from '../components/ConversationTranscript';
 import { ConsultationControls } from '../components/ConsultationControls';
+import { ConsultationSpeechInput } from '../components/ConsultationSpeechInput';
 import { useConsultationSession } from '../hooks/useConsultationSession';
 import { getSessionToken } from '../utils/tokenStorage';
 import './PatientConsultationPage.css';
@@ -117,6 +118,16 @@ export const PatientConsultationPage: React.FC = () => {
                 viewerRole="patient"
                 isMuted={session.isMuted}
                 repetitionRequest={session.repetitionRequest}
+              />
+
+              {/* Consultation Speech Input & Quick Demo Phrases */}
+              <ConsultationSpeechInput
+                role="patient"
+                onSendSpeech={session.sendSpeech}
+                connectionStatus={session.connectionStatus}
+                sessionStatus={session.status}
+                activityState={session.activityState}
+                disabled={isEnded || isError}
               />
 
               {/* Bilingual Transcript */}
