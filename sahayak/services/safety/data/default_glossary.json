@@ -1,0 +1,546 @@
+{
+  "version": "1.0.0",
+  "description": "Sahayak Protected Medical Glossary — Phase 4",
+  "terms": [
+    {
+      "canonical_name": "penicillin",
+      "category": "ALLERGY",
+      "variants": [
+        "penicillin",
+        "penicillin allergy",
+        "allergic to penicillin",
+        "penicillin se allergy",
+        "penicilin",
+        "पेनिसिलिन",
+        "पेनिसिलिन एलर्जी"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Beta-lactam antibiotic and common severe allergen"
+    },
+    {
+      "canonical_name": "sulfa",
+      "category": "ALLERGY",
+      "variants": [
+        "sulfa",
+        "sulfa allergy",
+        "sulfonamide",
+        "allergic to sulfa",
+        "sulfa drugs",
+        "सल्फा"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Sulfonamide antibiotic allergen"
+    },
+    {
+      "canonical_name": "aspirin allergy",
+      "category": "ALLERGY",
+      "variants": [
+        "aspirin allergy",
+        "allergic to aspirin",
+        "aspirin se allergy"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "NSAID/aspirin hypersensitivity"
+    },
+    {
+      "canonical_name": "medicine reaction",
+      "category": "ALLERGY",
+      "variants": [
+        "medicine reaction",
+        "drug reaction",
+        "adverse drug reaction",
+        "dawa reaction",
+        "dawa se reaction",
+        "dava reaction",
+        "reaction",
+        "दवा रिएक्शन",
+        "दवा से रिएक्शन"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Adverse drug reaction or allergy response"
+    },
+    {
+      "canonical_name": "peanut allergy",
+      "category": "ALLERGY",
+      "variants": [
+        "peanut allergy",
+        "allergic to peanuts",
+        "peanuts allergy"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Peanut food allergen"
+    },
+    {
+      "canonical_name": "latex allergy",
+      "category": "ALLERGY",
+      "variants": [
+        "latex allergy",
+        "allergic to latex"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Latex contact allergen"
+    },
+    {
+      "canonical_name": "allergy",
+      "category": "ALLERGY",
+      "variants": [
+        "allergy",
+        "allergic",
+        "allergies",
+        "एलर्जी"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "General allergy or hypersensitivity declaration"
+    },
+    {
+      "canonical_name": "metformin",
+      "category": "MEDICINE",
+      "variants": [
+        "metformin",
+        "metformin hydrochloride",
+        "glucophage",
+        "glycomet",
+        "metformina",
+        "मेटफॉर्मिन"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Biguanide antihyperglycemic medication"
+    },
+    {
+      "canonical_name": "insulin",
+      "category": "MEDICINE",
+      "variants": [
+        "insulin",
+        "lantus",
+        "novorapid",
+        "humalog",
+        "mixtard",
+        "इंसुलिन"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Peptide hormone for glycemic control"
+    },
+    {
+      "canonical_name": "anticoagulant",
+      "category": "MEDICINE",
+      "variants": [
+        "anticoagulant",
+        "blood thinner",
+        "blood thinners",
+        "blood-thinner",
+        "khoon patla karne ki dawa",
+        "खून पतला करने की दवा"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Antithrombotic / blood thinning agent"
+    },
+    {
+      "canonical_name": "amoxicillin",
+      "category": "MEDICINE",
+      "variants": [
+        "amoxicillin",
+        "amoxil",
+        "amoxycillin",
+        "mox",
+        "अमोक्सिसिलिन"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Aminopenicillin antibiotic"
+    },
+    {
+      "canonical_name": "aspirin",
+      "category": "MEDICINE",
+      "variants": [
+        "aspirin",
+        "ecosprin",
+        "acetylsalicylic acid",
+        "asa",
+        "एस्पिरिन"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Antiplatelet and NSAID medication"
+    },
+    {
+      "canonical_name": "paracetamol",
+      "category": "MEDICINE",
+      "variants": [
+        "paracetamol",
+        "acetaminophen",
+        "crocin",
+        "calpol",
+        "dolo",
+        "dolo 650",
+        "पैरासिटामोल"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Analgesic and antipyretic medication"
+    },
+    {
+      "canonical_name": "warfarin",
+      "category": "MEDICINE",
+      "variants": [
+        "warfarin",
+        "coumadin",
+        "वारफारिन"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Vitamin K antagonist oral anticoagulant"
+    },
+    {
+      "canonical_name": "atorvastatin",
+      "category": "MEDICINE",
+      "variants": [
+        "atorvastatin",
+        "lipitor",
+        "atorva",
+        "atorlip"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "HMG-CoA reductase inhibitor statin"
+    },
+    {
+      "canonical_name": "cetirizine",
+      "category": "MEDICINE",
+      "variants": [
+        "cetirizine",
+        "zyrtec",
+        "cetcip",
+        "alerid"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Second-generation antihistamine"
+    },
+    {
+      "canonical_name": "ibuprofen",
+      "category": "MEDICINE",
+      "variants": [
+        "ibuprofen",
+        "brufen",
+        "advil",
+        "motrin",
+        "combiflam"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Nonsteroidal anti-inflammatory drug"
+    },
+    {
+      "canonical_name": "lisinopril",
+      "category": "MEDICINE",
+      "variants": [
+        "lisinopril",
+        "prinivil",
+        "zestril"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "ACE inhibitor for hypertension"
+    },
+    {
+      "canonical_name": "amlodipine",
+      "category": "MEDICINE",
+      "variants": [
+        "amlodipine",
+        "amlong",
+        "norvasc",
+        "stamlo"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Calcium channel blocker for hypertension"
+    },
+    {
+      "canonical_name": "levothyroxine",
+      "category": "MEDICINE",
+      "variants": [
+        "levothyroxine",
+        "thyronorm",
+        "eltroxin",
+        "synthroid"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Thyroid hormone replacement"
+    },
+    {
+      "canonical_name": "pantoprazole",
+      "category": "MEDICINE",
+      "variants": [
+        "pantoprazole",
+        "pan",
+        "pantocid",
+        "pan 40"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Proton pump inhibitor"
+    },
+    {
+      "canonical_name": "clopidogrel",
+      "category": "MEDICINE",
+      "variants": [
+        "clopidogrel",
+        "plavix",
+        "clopilet"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Antiplatelet medication"
+    },
+    {
+      "canonical_name": "heparin",
+      "category": "MEDICINE",
+      "variants": [
+        "heparin",
+        "low molecular weight heparin",
+        "enoxaparin",
+        "हेपरिन"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Parenteral anticoagulant"
+    },
+    {
+      "canonical_name": "chest pain",
+      "category": "SEVERE_SYMPTOM",
+      "variants": [
+        "chest pain",
+        "seene mein dard",
+        "chhati mein dard",
+        "angina",
+        "chest tightness",
+        "chest heaviness",
+        "pressure in chest",
+        "सीने में दर्द",
+        "छाती में दर्द"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Pain or pressure in chest area"
+    },
+    {
+      "canonical_name": "breathing difficulty",
+      "category": "SEVERE_SYMPTOM",
+      "variants": [
+        "breathing difficulty",
+        "difficulty breathing",
+        "shortness of breath",
+        "breathlessness",
+        "dyspnea",
+        "saans lene mein takleef",
+        "saans phoolna",
+        "saans foolna",
+        "सांस लेने में तकलीफ",
+        "सांस फूलना"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Subjective shortness of breath or dyspnea"
+    },
+    {
+      "canonical_name": "fainting",
+      "category": "SEVERE_SYMPTOM",
+      "variants": [
+        "fainting",
+        "fainted",
+        "syncope",
+        "passed out",
+        "fainting episode",
+        "loss of consciousness",
+        "chakkar aana",
+        "behosh ho gaya",
+        "behoshi",
+        "चक्कर आना",
+        "बेहोशी"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Transient loss of consciousness or syncope"
+    },
+    {
+      "canonical_name": "coughing blood",
+      "category": "SEVERE_SYMPTOM",
+      "variants": [
+        "coughing blood",
+        "hemoptysis",
+        "vomiting blood",
+        "hematemesis",
+        "khoon ki ulti",
+        "खून की उल्टी"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Expectoration or emesis of blood"
+    },
+    {
+      "canonical_name": "cannot breathe",
+      "category": "EMERGENCY",
+      "variants": [
+        "cannot breathe",
+        "cant breathe",
+        "can't breathe",
+        "unable to breathe",
+        "not breathing",
+        "stopped breathing",
+        "suffocating",
+        "choking",
+        "saans nahi aa rahi",
+        "saans band ho gayi",
+        "saans ruk gayi",
+        "सांस नहीं आ रही",
+        "सांस बंद हो गई"
+      ],
+      "is_protected": true,
+      "severity": "emergency",
+      "description": "Acute respiratory arrest or severe obstruction"
+    },
+    {
+      "canonical_name": "unconscious",
+      "category": "EMERGENCY",
+      "variants": [
+        "unconscious",
+        "unresponsive",
+        "not responding",
+        "collapsed and not waking up",
+        "cannot wake up",
+        "behosh hai aur uth nahi raha",
+        "unconscious patient",
+        "बेहोश"
+      ],
+      "is_protected": true,
+      "severity": "emergency",
+      "description": "Unresponsive or comatose patient"
+    },
+    {
+      "canonical_name": "severe bleeding",
+      "category": "EMERGENCY",
+      "variants": [
+        "severe bleeding",
+        "massive bleeding",
+        "uncontrolled bleeding",
+        "profuse bleeding",
+        "massive hemorrhage",
+        "bleeding heavily",
+        "bahut zyada khoon beh raha hai",
+        "khoon ruk nahi raha",
+        "भारी रक्तस्राव"
+      ],
+      "is_protected": true,
+      "severity": "emergency",
+      "description": "Severe or uncontrolled hemorrhage"
+    },
+    {
+      "canonical_name": "heart attack",
+      "category": "EMERGENCY",
+      "variants": [
+        "heart attack",
+        "cardiac arrest",
+        "myocardial infarction",
+        "dil ka daura",
+        "दिल का दौरा"
+      ],
+      "is_protected": true,
+      "severity": "emergency",
+      "description": "Acute myocardial infarction or cardiac arrest"
+    },
+    {
+      "canonical_name": "anaphylaxis",
+      "category": "EMERGENCY",
+      "variants": [
+        "anaphylaxis",
+        "anaphylactic shock",
+        "airway closing",
+        "throat swelling shut",
+        "severe allergic shock"
+      ],
+      "is_protected": true,
+      "severity": "emergency",
+      "description": "Systemic life-threatening allergic reaction"
+    },
+    {
+      "canonical_name": "stroke",
+      "category": "EMERGENCY",
+      "variants": [
+        "brain stroke",
+        "sudden paralysis",
+        "face drooping and arm numb",
+        "paralysis"
+      ],
+      "is_protected": true,
+      "severity": "emergency",
+      "description": "Acute cerebrovascular accident"
+    },
+    {
+      "canonical_name": "no allergy",
+      "category": "NEGATION",
+      "variants": [
+        "no allergy",
+        "no allergies",
+        "not allergic",
+        "don't have allergy",
+        "dont have allergy",
+        "deny allergy",
+        "denies allergy",
+        "no known drug allergy",
+        "nkda",
+        "koi allergy nahi",
+        "koi allergy nahi hai",
+        "allergy nahi hai",
+        "एलर्जी नहीं है",
+        "कोई एलर्जी नहीं"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Explicit negation or denial of drug/environmental allergy"
+    },
+    {
+      "canonical_name": "not pregnant",
+      "category": "NEGATION",
+      "variants": [
+        "not pregnant",
+        "denies pregnancy",
+        "negative pregnancy",
+        "pregnant nahi hoon",
+        "pregnant nahi hai",
+        "प्रेगनेंट नहीं"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Explicit negation of pregnancy status"
+    },
+    {
+      "canonical_name": "no pain",
+      "category": "NEGATION",
+      "variants": [
+        "no pain",
+        "denies pain",
+        "no chest pain",
+        "no abdominal pain",
+        "pain free",
+        "dard nahi hai",
+        "koi dard nahi",
+        "koi dard nahi hai",
+        "दर्द नहीं है"
+      ],
+      "is_protected": true,
+      "severity": "critical",
+      "description": "Explicit negation of pain symptom"
+    }
+  ]
+}
