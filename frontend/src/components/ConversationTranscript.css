@@ -81,6 +81,11 @@
   gap: var(--space-4);
 }
 
+.sahayak-transcript-card__grid--single {
+  grid-template-columns: 1fr;
+}
+
+
 .sahayak-transcript-card__original,
 .sahayak-transcript-card__translated {
   display: flex;

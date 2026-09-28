@@ -36,6 +36,10 @@ function createMockStorage() {
 
 class MockWebSocket {
   static instances = [];
+  static CONNECTING = 0;
+  static OPEN = 1;
+  static CLOSING = 2;
+  static CLOSED = 3;
 
   constructor(url) {
     this.url = url;
@@ -1399,8 +1403,207 @@ async function runConsultationTests() {
     console.log('✓ Doctor and patient screens render accurate empty transcripts, peer connection states, exactly one end error, and handle failed end requests with accessible retry.');
   }
 
+  // -------------------------------------------------------------------------
+  // TEST 7: PHASE 6A LIVE TEXT INTERPRETATION EVENTS & ROUTING
+  // -------------------------------------------------------------------------
+  console.log('\n--- TEST 7: PHASE 6A LIVE TEXT INTERPRETATION EVENTS & ROUTING ---');
+  {
+    globalThis.fetch = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        session_id: 'sess-phase6a',
+        status: 'active',
+        created_at: '2026-09-28T10:00:00Z',
+        doctor_language: 'en',
+        patient_language: 'hi',
+        retention_expires_at: '2026-09-28T10:30:00Z',
+        participants: [
+          { participant_id: 'p1', role: 'doctor', connection_status: 'connected', microphone_status: 'granted' },
+          { participant_id: 'p2', role: 'patient', connection_status: 'connected', microphone_status: 'granted' },
+        ],
+      }),
+    });
+
+    globalThis.WebSocket = MockWebSocket;
+    const docAdapter = new ConsultationAdapter('sess-phase6a', 'doctor');
+    await docAdapter.connect('sess-phase6a', 'doctor', 'token-doc-6a');
+    await new Promise((r) => setTimeout(r, 25));
+
+    const patAdapter = new ConsultationAdapter('sess-phase6a', 'patient');
+    await patAdapter.connect('sess-phase6a', 'patient', 'token-pat-6a');
+    await new Promise((r) => setTimeout(r, 25));
+
+    // 7A: Client sending speech sends { type: "speech", text: "..." }
+    const docWs = docAdapter.ws;
+    const patWs = patAdapter.ws;
+    assert.ok(docWs, 'Doctor WebSocket must be created');
+    assert.ok(patWs, 'Patient WebSocket must be created');
+
+    docAdapter.sendSpeech('Hello, how are you feeling today?');
+    assert.ok(docWs.sentMessages.length > 0, 'Doctor WebSocket must have sent speech message');
+    const lastDocMsg = JSON.parse(docWs.sentMessages[docWs.sentMessages.length - 1]);
+    assert.strictEqual(lastDocMsg.type, 'speech');
+    assert.strictEqual(lastDocMsg.text, 'Hello, how are you feeling today?');
+
+    // 7B: Inbound interpretation routed to Patient
+    // Doctor spoke in EN -> backend sends interpretation to Patient in HI
+    patWs.onmessage({
+      data: JSON.stringify({
+        type: 'interpretation',
+        session_id: 'sess-phase6a',
+        recipient_role: 'patient',
+        sender_role: 'doctor',
+        timestamp: '2026-09-28T10:00:05Z',
+        text: 'नमस्ते, आज आप कैसा महसूस कर रहे हैं?',
+        source_language: 'en',
+        target_language: 'hi',
+        turn_id: 'turn-001',
+      }),
+    });
+
+    const patState = patAdapter.getState();
+    assert.strictEqual(patState.turns.length, 1);
+    assert.strictEqual(patState.turns[0].translatedText, 'नमस्ते, आज आप कैसा महसूस कर रहे हैं?');
+    assert.strictEqual(patState.turns[0].originalText, undefined, 'Recipient must not fabricate original text when backend only sends translated text');
+    assert.strictEqual(patState.turns[0].speakerRole, 'doctor');
+    assert.strictEqual(patState.turns[0].translatedLanguage, 'hi');
+
+    // 7C: Cross-role isolation - if Patient receives an event meant for Doctor, it is dropped
+    patWs.onmessage({
+      data: JSON.stringify({
+        type: 'interpretation',
+        session_id: 'sess-phase6a',
+        recipient_role: 'doctor',
+        sender_role: 'patient',
+        timestamp: '2026-09-28T10:00:10Z',
+        text: 'I have a fever since yesterday',
+        source_language: 'hi',
+        target_language: 'en',
+        turn_id: 'turn-002',
+      }),
+    });
+    assert.strictEqual(patAdapter.getState().turns.length, 1, 'Event for doctor must NOT be accepted by patient');
+
+    // 7D: Cross-session isolation - if event is for another session, it is dropped
+    docWs.onmessage({
+      data: JSON.stringify({
+        type: 'interpretation',
+        session_id: 'sess-OTHER',
+        recipient_role: 'doctor',
+        sender_role: 'patient',
+        timestamp: '2026-09-28T10:00:10Z',
+        text: 'Other session text',
+        source_language: 'hi',
+        target_language: 'en',
+        turn_id: 'turn-003',
+      }),
+    });
+    assert.strictEqual(docAdapter.getState().turns.length, 0, 'Event for different session must be dropped');
+
+    // 7E: Confirmation prompt and confirmation response
+    docWs.onmessage({
+      data: JSON.stringify({
+        type: 'confirmation_prompt',
+        session_id: 'sess-phase6a',
+        recipient_role: 'doctor',
+        sender_role: 'doctor',
+        timestamp: '2026-09-28T10:01:00Z',
+        prompt_text: 'Did you specify 500mg paracetamol twice daily?',
+        turn_id: 'turn-confirm-1',
+        category: 'medication',
+      }),
+    });
+    assert.strictEqual(docAdapter.getState().currentTurn?.confirmation?.promptText, 'Did you specify 500mg paracetamol twice daily?');
+    assert.strictEqual(docAdapter.getState().currentTurn?.confirmation?.outcome, 'pending');
+
+    docAdapter.sendConfirmationResponse('turn-confirm-1', 'yes');
+    const confirmMsg = JSON.parse(docWs.sentMessages[docWs.sentMessages.length - 1]);
+    assert.strictEqual(confirmMsg.type, 'confirmation_response');
+    assert.strictEqual(confirmMsg.turn_id, 'turn-confirm-1');
+    assert.strictEqual(confirmMsg.response, 'yes');
+
+    // 7F: Verified Fact (Doctor only)
+    docWs.onmessage({
+      data: JSON.stringify({
+        type: 'verified_fact',
+        session_id: 'sess-phase6a',
+        recipient_role: 'doctor',
+        sender_role: 'backend',
+        timestamp: '2026-09-28T10:01:05Z',
+        fact_id: 'fact-1',
+        turn_id: 'turn-confirm-1',
+        category: 'medication',
+        source_wording: '500mg twice daily',
+        translated_wording: '500 मिलीग्राम दिन में दो बार',
+      }),
+    });
+    assert.strictEqual(docAdapter.getState().verifiedFacts.length, 1);
+    assert.strictEqual(docAdapter.getState().verifiedFacts[0].id, 'fact-1');
+    assert.strictEqual(docAdapter.getState().verifiedFacts[0].category, 'medication');
+
+    // 7G: Repetition Request
+    docWs.onmessage({
+      data: JSON.stringify({
+        type: 'repetition_request',
+        session_id: 'sess-phase6a',
+        recipient_role: 'doctor',
+        sender_role: 'backend',
+        timestamp: '2026-09-28T10:02:00Z',
+        prompt_text: 'Speech was unclear. Please repeat the statement.',
+        turn_id: 'turn-rep-1',
+      }),
+    });
+    assert.strictEqual(docAdapter.getState().repetitionRequest?.promptText, 'Speech was unclear. Please repeat the statement.');
+
+    // 7H: Emergency Alert
+    docWs.onmessage({
+      data: JSON.stringify({
+        type: 'emergency_alert',
+        session_id: 'sess-phase6a',
+        recipient_role: 'doctor',
+        sender_role: 'backend',
+        timestamp: '2026-09-28T10:03:00Z',
+        alert: 'Patient reported severe acute chest pain radiating to left arm.',
+        turn_id: 'turn-emg-1',
+      }),
+    });
+    assert.strictEqual(docAdapter.getState().emergencyAlert?.text, 'Patient reported severe acute chest pain radiating to left arm.');
+
+    patWs.onmessage({
+      data: JSON.stringify({
+        type: 'emergency_alert',
+        session_id: 'sess-phase6a',
+        recipient_role: 'patient',
+        sender_role: 'backend',
+        timestamp: '2026-09-28T10:03:00Z',
+        instruction: 'कृपया तुरंत आपातकालीन सहायता प्राप्त करें।',
+        turn_id: 'turn-emg-1',
+      }),
+    });
+    assert.strictEqual(patAdapter.getState().emergencyAlert?.text, 'कृपया तुरंत आपातकालीन सहायता प्राप्त करें।');
+
+    // 7I: Unknown event type safety
+    docWs.onmessage({
+      data: JSON.stringify({
+        type: 'future_unknown_event',
+        session_id: 'sess-phase6a',
+        recipient_role: 'doctor',
+        sender_role: 'backend',
+        timestamp: '2026-09-28T10:04:00Z',
+        unknown_field: 12345,
+      }),
+    });
+    assert.strictEqual(docAdapter.getState().status, 'active');
+
+    docAdapter.destroy();
+    patAdapter.destroy();
+
+    console.log('✓ Phase 6A two-way text interpretation, role isolation, confirmations, verified facts, repetition requests, and emergency alerts verified.');
+  }
+
   console.log('\n================================================================');
-  console.log('ALL PHASE 4 FULL LIFECYCLE TESTS PASSED WITH 0 ERRORS');
+  console.log('ALL PHASE 4 & PHASE 6A TESTS PASSED WITH 0 ERRORS');
   console.log('================================================================\n');
 }
 

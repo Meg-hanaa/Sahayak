@@ -86,6 +86,16 @@ export const DoctorConsultationPage: React.FC = () => {
             </div>
           ) : (
             <>
+              {/* Emergency Alert Banner */}
+              {session.emergencyAlert && (
+                <div className="sahayak-doctor-room__alert-banner" role="alert">
+                  <strong className="sahayak-doctor-room__alert-tag">EMERGENCY ALERT:</strong>
+                  <span className="sahayak-doctor-room__alert-text">
+                    {session.emergencyAlert.text}
+                  </span>
+                </div>
+              )}
+
               {/* Patient Waiting Banner if not joined */}
               {session.patient.connectionStatus === 'waiting' && (
                 <div className="sahayak-doctor-room__waiting-banner" role="status">
@@ -110,12 +120,38 @@ export const DoctorConsultationPage: React.FC = () => {
                 currentTurn={session.currentTurn}
                 viewerRole="doctor"
                 isMuted={session.isMuted}
+                repetitionRequest={session.repetitionRequest}
               />
+
+              {/* Verified Clinical Facts */}
+              {session.verifiedFacts.length > 0 && (
+                <section className="sahayak-doctor-room__facts-card" aria-label="Verified clinical facts">
+                  <h3 className="sahayak-doctor-room__facts-title">Verified Clinical Facts</h3>
+                  <ul className="sahayak-doctor-room__facts-list">
+                    {session.verifiedFacts.map((fact) => (
+                      <li key={fact.id} className="sahayak-doctor-room__fact-item">
+                        <span className="sahayak-doctor-room__fact-category">{fact.category}</span>
+                        <div className="sahayak-doctor-room__fact-wording">
+                          <span className="sahayak-doctor-room__fact-source">
+                            <strong>Source:</strong> {fact.sourceWording}
+                          </span>
+                          <span className="sahayak-doctor-room__fact-translated">
+                            <strong>Translated:</strong> {fact.translatedWording}
+                          </span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
 
               {/* Full Bilingual Transcript */}
               <ConversationTranscript
                 turns={session.turns}
                 viewerRole="doctor"
+                onConfirmAction={(turnId, confirmed) => {
+                  session.sendConfirmationResponse(turnId, confirmed ? 'yes' : 'no');
+                }}
               />
             </>
           )}

@@ -76,6 +76,10 @@ export const SetupDevPreviewPage: React.FC = () => {
     'error',
   ];
 
+  // Phase 6A dev speech simulator
+  const [devSpeechText, setDevSpeechText] = useState('');
+  const [devSentLog, setDevSentLog] = useState<Array<{ text: string; time: string }>>([]);
+
   return (
     <div className="sahayak-dev-page">
       <TaskHeader containerSize="lg" badge="Development Fixtures" />
@@ -242,6 +246,70 @@ export const SetupDevPreviewPage: React.FC = () => {
                   <SpeakerCheck speaker={mockSpeaker} language={lang} />
                 </div>
               </div>
+            </section>
+
+            {/* Section 4: Phase 6A Live Interpretation Event Simulator (DEV ONLY) */}
+            <section className="sahayak-dev-section" aria-labelledby="phase6a-dev-simulator">
+              <div className="sahayak-dev-section__header">
+                <h2 id="phase6a-dev-simulator" className="sahayak-dev-section__title">
+                  4. Phase 6A Development Live WebSocket Speech Test (DEV ONLY)
+                </h2>
+                <p className="sahayak-dev-section__desc">
+                  Simulate sending text speech events <code>{'{ "type": "speech", "text": "..." }'}</code> to a connected consultation session adapter. This UI is isolated to development and not visible in production consultation rooms.
+                </p>
+              </div>
+
+              <div className="sahayak-dev-controls">
+                <div className="sahayak-dev-control-group" style={{ width: '100%' }}>
+                  <label htmlFor="dev-speech-input" className="sahayak-dev-control-label">
+                    Speech Text Payload:
+                  </label>
+                  <input
+                    id="dev-speech-input"
+                    type="text"
+                    value={devSpeechText}
+                    onChange={(e) => setDevSpeechText(e.target.value)}
+                    placeholder="e.g. Take two tablets of paracetamol after meals"
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--color-border-subtle)',
+                      width: '100%',
+                      maxWidth: '500px',
+                      fontSize: 'var(--font-size-sm)',
+                    }}
+                  />
+                </div>
+                <div>
+                  <button
+                    type="button"
+                    className="sahayak-dev-pill sahayak-dev-pill--active"
+                    onClick={() => {
+                      if (!devSpeechText.trim()) return;
+                      setDevSentLog((prev) => [
+                        ...prev,
+                        { text: devSpeechText, time: new Date().toLocaleTimeString() },
+                      ]);
+                      setDevSpeechText('');
+                    }}
+                  >
+                    Send Simulated Speech
+                  </button>
+                </div>
+              </div>
+
+              {devSentLog.length > 0 && (
+                <div className="sahayak-dev-preview-box">
+                  <span className="sahayak-dev-control-label">Simulated Outbound Messages:</span>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: '8px 0 0 0' }}>
+                    {devSentLog.map((log, idx) => (
+                      <li key={idx} style={{ fontSize: 'var(--font-size-xs)', fontFamily: 'monospace', padding: '4px 0' }}>
+                        [{log.time}] {JSON.stringify({ type: 'speech', text: log.text })}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </section>
           </div>
         </Container>

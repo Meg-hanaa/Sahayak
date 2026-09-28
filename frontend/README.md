@@ -42,6 +42,18 @@ This package contains the React 19, Vite, and TypeScript frontend application.
 - **Responsive Layout & Content Protection**: Consultation containers maintain safe bottom padding preventing sticky control overlap across 375px, 768px, 1024px, and 1440px viewports. Long session IDs, connection indicators, and Hindi typography wrap without clipping or horizontal overflow.
 - **Accessible Touch & Focus Targets**: All primary interactive elements maintain minimum 44px touch targets with prominent keyboard focus styling.
 
+### Phase 6A: Frontend Integration for Text Interpretation Events
+
+- **Two-Way Text Event Routing**:
+  - Outbound speech events: `{ "type": "speech", "text": "...", "confidence_data"?: { ... } }` sent to `/ws/sessions/{sessionId}?token={token}`.
+  - Outbound confirmation responses: `{ "type": "confirmation_response", "turn_id": "...", "response": "..." }`.
+  - Inbound interpretation routing: Receives `{ "type": "interpretation", "text": "...", "source_language": "...", "target_language": "...", "turn_id": "..." }`. Interpreted text is rendered in the recipient's target language without fabricating nonexistent original speech.
+  - Role & Session Isolation: Enforces `recipient_role` and `session_id` checks to guarantee zero cross-role or cross-session message leakage.
+  - Verification & Safety: Handles `confirmation_prompt` to speaker, affirmative `verified_fact` ingestion for doctors, `repetition_request` banners, and prominent `emergency_alert` banners for both roles.
+  - Unknown Event Safety: Safely ignores unhandled event types without dropping the WebSocket connection or corrupting state.
+  - Development Test Harness: Includes a clearly labeled dev-only speech simulator at `/dev/setup` (completely omitted from production consultation rooms).
+
+
 ---
 
 ## Verified Backend API & WebSocket Contract

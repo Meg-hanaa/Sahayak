@@ -82,6 +82,16 @@ export const PatientConsultationPage: React.FC = () => {
             </div>
           ) : (
             <>
+              {/* Emergency Alert Banner */}
+              {session.emergencyAlert && (
+                <div className="sahayak-patient-room__alert-banner" role="alert">
+                  <strong className="sahayak-patient-room__alert-tag">आपातकालीन सूचना:</strong>
+                  <span className="sahayak-patient-room__alert-text">
+                    {session.emergencyAlert.text}
+                  </span>
+                </div>
+              )}
+
               {/* Doctor Waiting Banner */}
               {session.doctor.connectionStatus === 'waiting' && (
                 <div className="sahayak-patient-room__waiting-banner" role="status">
@@ -106,12 +116,16 @@ export const PatientConsultationPage: React.FC = () => {
                 currentTurn={session.currentTurn}
                 viewerRole="patient"
                 isMuted={session.isMuted}
+                repetitionRequest={session.repetitionRequest}
               />
 
               {/* Bilingual Transcript */}
               <ConversationTranscript
                 turns={session.turns}
                 viewerRole="patient"
+                onConfirmAction={(turnId, confirmed) => {
+                  session.sendConfirmationResponse(turnId, confirmed ? 'Haan' : 'Nahi');
+                }}
               />
             </>
           )}

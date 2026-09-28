@@ -2,6 +2,7 @@ import React from 'react';
 import {
   ConversationTurn,
   ParticipantRole,
+  RepetitionRequestItem,
   SystemActivityState,
 } from '../types/consultation.ts';
 import './LiveTurnDisplay.css';
@@ -12,6 +13,7 @@ export interface LiveTurnDisplayProps {
   viewerRole: ParticipantRole;
   isMuted: boolean;
   errorMessage?: string | null;
+  repetitionRequest?: RepetitionRequestItem | null;
 }
 
 export const LiveTurnDisplay: React.FC<LiveTurnDisplayProps> = ({
@@ -19,6 +21,7 @@ export const LiveTurnDisplay: React.FC<LiveTurnDisplayProps> = ({
   currentTurn,
   viewerRole,
   isMuted,
+  repetitionRequest,
 }) => {
   const isDoctor = viewerRole === 'doctor';
 
@@ -61,7 +64,10 @@ export const LiveTurnDisplay: React.FC<LiveTurnDisplayProps> = ({
     }
   };
 
-  const hasActiveContent = Boolean(currentTurn && (currentTurn.originalText || currentTurn.translatedText));
+  const hasOriginal = Boolean(currentTurn?.originalText);
+  const hasTranslated = Boolean(currentTurn?.translatedText);
+  const hasActiveContent = Boolean(currentTurn && (hasOriginal || hasTranslated));
+  const isSingleColumn = (hasOriginal && !hasTranslated) || (!hasOriginal && hasTranslated);
 
   return (
     <section
@@ -78,54 +84,65 @@ export const LiveTurnDisplay: React.FC<LiveTurnDisplayProps> = ({
         <span className="sahayak-live-turn__status-text">{getActivityMessage()}</span>
       </div>
 
+      {/* Repetition Request Banner */}
+      {repetitionRequest && (
+        <div className="sahayak-live-turn__repetition-banner" role="alert">
+          <span className="sahayak-live-turn__repetition-tag">
+            {isDoctor ? 'Repetition Needed' : 'कृपया दोहराएँ'}
+          </span>
+          <p className="sahayak-live-turn__repetition-text">
+            {repetitionRequest.promptText}
+          </p>
+        </div>
+      )}
+
       {/* Active Speech Box */}
       {hasActiveContent && currentTurn && (
-        <div className="sahayak-live-turn__content-card">
+        <div className={`sahayak-live-turn__content-card ${isSingleColumn ? 'sahayak-live-turn__content-card--single' : ''}`}>
           {/* Original Speech */}
-          <div className="sahayak-live-turn__speech-section">
-            <span className="sahayak-live-turn__label">
-              {currentTurn.speakerRole === 'doctor'
-                ? isDoctor
-                  ? 'Doctor (English — Original)'
-                  : 'डॉक्टर (अंग्रेज़ी — मूल)'
-                : isDoctor
-                ? 'Patient (Hindi — Original)'
-                : 'आप (हिन्दी — मूल)'}
-            </span>
-            <p
-              className="sahayak-live-turn__text"
-              lang={currentTurn.originalLanguage}
-            >
-              {currentTurn.originalText}
-            </p>
-          </div>
+          {hasOriginal && (
+            <div className="sahayak-live-turn__speech-section">
+              <span className="sahayak-live-turn__label">
+                {currentTurn.speakerRole === 'doctor'
+                  ? isDoctor
+                    ? 'Doctor (English — Original)'
+                    : 'डॉक्टर (अंग्रेज़ी — मूल)'
+                  : isDoctor
+                  ? 'Patient (Hindi — Original)'
+                  : 'आप (हिन्दी — मूल)'}
+              </span>
+              <p
+                className="sahayak-live-turn__text"
+                lang={currentTurn.originalLanguage}
+              >
+                {currentTurn.originalText}
+              </p>
+            </div>
+          )}
 
           {/* Interpretation */}
-          <div className="sahayak-live-turn__interpretation-section">
-            <span className="sahayak-live-turn__label">
-              {currentTurn.speakerRole === 'doctor'
-                ? isDoctor
-                  ? 'Interpretation (Hindi for Patient)'
-                  : 'अनुवाद (हिन्दी — आपके लिए)'
-                : isDoctor
-                ? 'Interpretation (English for Doctor)'
-                : 'अनुवाद (अंग्रेज़ी — डॉक्टर के लिए)'}
-            </span>
-            {currentTurn.translatedText ? (
+          {hasTranslated && (
+            <div className="sahayak-live-turn__interpretation-section">
+              <span className="sahayak-live-turn__label">
+                {currentTurn.speakerRole === 'doctor'
+                  ? isDoctor
+                    ? 'Interpretation (Hindi for Patient)'
+                    : 'अनुवाद (हिन्दी — आपके लिए)'
+                  : isDoctor
+                  ? 'Interpretation (English for Doctor)'
+                  : 'अनुवाद (अंग्रेज़ी — डॉक्टर के लिए)'}
+              </span>
               <p
                 className="sahayak-live-turn__text sahayak-live-turn__text--interpreted"
                 lang={currentTurn.translatedLanguage || (currentTurn.originalLanguage === 'en' ? 'hi' : 'en')}
               >
                 {currentTurn.translatedText}
               </p>
-            ) : (
-              <p className="sahayak-live-turn__placeholder">
-                {isDoctor ? 'Interpreting speech...' : 'अनुवाद तैयार हो रहा है...'}
-              </p>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
     </section>
   );
 };
+

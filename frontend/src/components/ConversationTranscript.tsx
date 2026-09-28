@@ -87,19 +87,21 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
               </div>
 
               {/* Speech & Interpretation Grid */}
-              <div className="sahayak-transcript-card__grid">
+              <div className={`sahayak-transcript-card__grid ${!turn.originalText ? 'sahayak-transcript-card__grid--single' : ''}`}>
                 {/* Original utterance */}
-                <div className="sahayak-transcript-card__original">
-                  <span className="sahayak-transcript-card__sublabel">
-                    {isDoctor ? 'Original Speech' : 'मूल आवाज़'}
-                  </span>
-                  <p
-                    className="sahayak-transcript-card__text"
-                    lang={turn.originalLanguage}
-                  >
-                    {turn.originalText}
-                  </p>
-                </div>
+                {turn.originalText && (
+                  <div className="sahayak-transcript-card__original">
+                    <span className="sahayak-transcript-card__sublabel">
+                      {isDoctor ? 'Original Speech' : 'मूल आवाज़'}
+                    </span>
+                    <p
+                      className="sahayak-transcript-card__text"
+                      lang={turn.originalLanguage}
+                    >
+                      {turn.originalText}
+                    </p>
+                  </div>
+                )}
 
                 {/* Translated utterance */}
                 {turn.translatedText && (

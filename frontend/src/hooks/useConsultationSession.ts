@@ -11,6 +11,8 @@ export interface UseConsultationSessionReturn extends ConsultationSessionState {
   setActivityState: (activity: SystemActivityState) => void;
   endConsultation: () => Promise<void>;
   leaveConsultation: () => Promise<void>;
+  sendSpeech: (text: string, confidenceData?: Record<string, number>) => boolean;
+  sendConfirmationResponse: (turnId: string, response: string) => boolean;
 }
 
 export function useConsultationSession(
@@ -55,11 +57,27 @@ export function useConsultationSession(
     await adapter.leaveConsultation();
   }, [adapter]);
 
+  const sendSpeech = useCallback(
+    (text: string, confidenceData?: Record<string, number>) => {
+      return adapter.sendSpeech(text, confidenceData);
+    },
+    [adapter]
+  );
+
+  const sendConfirmationResponse = useCallback(
+    (turnId: string, response: string) => {
+      return adapter.sendConfirmationResponse(turnId, response);
+    },
+    [adapter]
+  );
+
   return {
     ...state,
     setMuted,
     setActivityState,
     endConsultation,
     leaveConsultation,
+    sendSpeech,
+    sendConfirmationResponse,
   };
 }

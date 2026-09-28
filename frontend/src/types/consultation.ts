@@ -52,18 +52,43 @@ export interface TurnConfirmation {
   outcome: ConfirmationOutcome;
   responderRole?: ParticipantRole;
   userActionLabel?: string;
+  category?: string | null;
 }
 
 export interface ConversationTurn {
   id: string;
   timestamp: string; // User-facing timestamp e.g. "10:32 AM"
   speakerRole: ParticipantRole;
-  originalText: string;
-  originalLanguage: LanguageCode;
+  originalText?: string;
+  originalLanguage?: LanguageCode;
   translatedText?: string;
   translatedLanguage?: LanguageCode;
   status: 'transcribing' | 'translating' | 'completed' | 'failed';
   confirmation?: TurnConfirmation;
+  isVerified?: boolean;
+}
+
+export interface VerifiedFactItem {
+  id: string;
+  factId?: string;
+  turnId: string;
+  category: string;
+  sourceWording: string;
+  translatedWording: string;
+  timestamp: string;
+}
+
+export interface EmergencyAlertItem {
+  text: string;
+  turnId: string;
+  role: ParticipantRole;
+  timestamp: string;
+}
+
+export interface RepetitionRequestItem {
+  promptText: string;
+  turnId: string;
+  timestamp: string;
 }
 
 export interface ConsultationSessionState {
@@ -80,4 +105,7 @@ export interface ConsultationSessionState {
   turns: ConversationTurn[];
   isMuted: boolean;
   errorMessage?: string | null;
+  verifiedFacts: VerifiedFactItem[];
+  emergencyAlert?: EmergencyAlertItem | null;
+  repetitionRequest?: RepetitionRequestItem | null;
 }

@@ -82,3 +82,27 @@
   outline: var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
 }
+
+.sahayak-patient-room__alert-banner {
+  background-color: var(--color-error-bg);
+  border: 2px solid var(--color-error);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-error);
+}
+
+.sahayak-patient-room__alert-tag {
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.sahayak-patient-room__alert-text {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+

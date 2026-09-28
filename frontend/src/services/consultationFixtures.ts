@@ -101,6 +101,9 @@ export function createFixtureSession(
     currentTurn: null,
     isMuted: false,
     errorMessage: null,
+    verifiedFacts: [],
+    emergencyAlert: null,
+    repetitionRequest: null,
     ...overrides,
   };
 }
