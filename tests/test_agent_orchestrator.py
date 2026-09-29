@@ -45,6 +45,7 @@ from sahayak.services.agent import (
     ConfirmationResponseClassifier,
     TurnStateMachine,
 )
+from sahayak.services.agent.prompts import build_confirmation_prompt
 from sahayak.services.clock import FakeClock
 from sahayak.services.safety import DeterministicSafetyEngine, SafetyEngineConfig
 
@@ -625,4 +626,24 @@ def test_turn_state_machine_history_and_terminal() -> None:
     assert sm.history[0].to_state == TurnState.LISTENING
     assert sm.history[0].reason == "Audio started"
     assert sm.history[-1].to_state == TurnState.ENDED
+
+
+def test_allergy_prompt_clean_formatting() -> None:
+    """Allergy confirmation prompts must avoid ungrammatical phrasing like 'allergy to allergic'."""
+    # Generic allergy terms
+    for term in ["allergic", "allergy", "allergies", "an allergy"]:
+        prompt_en = build_confirmation_prompt(term, CriticalFactCategory.ALLERGY, LanguageCode.ENGLISH)
+        assert prompt_en == "Did you say you have an allergy? Please confirm with yes or no."
+        assert "allergy to allergic" not in prompt_en
+        assert "allergy to allergy" not in prompt_en
+
+    # Hindi generic terms
+    for term in ["एलर्जी", "allergy", "allergic"]:
+        prompt_hi = build_confirmation_prompt(term, CriticalFactCategory.ALLERGY, LanguageCode.HINDI)
+        assert "क्या आपको एलर्जी है? कृपया हाँ या नहीं में पुष्टि करें।" in prompt_hi
+
+    # Specific allergen terms with redundant suffix
+    prompt_pen = build_confirmation_prompt("penicillin allergy", CriticalFactCategory.ALLERGY, LanguageCode.ENGLISH)
+    assert prompt_pen == "Did you say you have an allergy to penicillin? Please confirm with yes or no."
+
 

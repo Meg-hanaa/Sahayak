@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from sahayak.domain.enums import LanguageCode
 from sahayak.domain.safety import CriticalFactCategory
 
@@ -40,11 +42,25 @@ def build_confirmation_prompt(
 ) -> str:
     """Generate a deterministic, category-specific confirmation prompt."""
     cat_key = category.value if isinstance(category, CriticalFactCategory) else str(category)
+    clean_term = term.strip() if term else ""
+
+    if cat_key == CriticalFactCategory.ALLERGY.value:
+        # Avoid ungrammatical prompts like "allergy to allergic" or "allergy to allergy"
+        if clean_term.lower() in ("allergy", "allergic", "allergies", "एलर्जी", "an allergy", "koi allergy"):
+            if language == LanguageCode.HINDI:
+                return "क्या आपको एलर्जी है? कृपया हाँ या नहीं में पुष्टि करें।"
+            return "Did you say you have an allergy? Please confirm with yes or no."
+
+        # If term ends with redundant "allergy", e.g. "penicillin allergy" -> "penicillin"
+        clean_term = re.sub(r"\s+(?:allergy|allergic|allergies)$", "", clean_term, flags=re.IGNORECASE)
+        # In Hindi, strip trailing "से एलर्जी" or "एलर्जी"
+        clean_term = re.sub(r"\s*(?:से\s+)?एलर्जी$", "", clean_term).strip()
+
     if language == LanguageCode.HINDI:
         template = _CONFIRMATION_TEMPLATES_HI.get(cat_key, _DEFAULT_CONFIRM_HI)
     else:
         template = _CONFIRMATION_TEMPLATES_EN.get(cat_key, _DEFAULT_CONFIRM_EN)
-    return template.format(term=term)
+    return template.format(term=clean_term)
 
 
 def build_clarification_prompt(
