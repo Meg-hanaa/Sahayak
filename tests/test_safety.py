@@ -101,6 +101,25 @@ class TestAllergyDetection:
         latex_res = engine.analyze_text("I have a latex allergy.")
         assert latex_res.category == CriticalFactCategory.ALLERGY.value
 
+    def test_allergy_screening_inquiries_are_standard(self, engine: DeterministicSafetyEngine) -> None:
+        """Screening questions asked by providers should translate directly as STANDARD and not trigger confirmation."""
+        inquiries = [
+            "Are you allergic to anything?",
+            "if you are allergic to anything",
+            "Do you have any allergies?",
+            "Do you have an allergy to penicillin?",
+            "Are you allergic to penicillin?",
+            "Have you ever had an allergic reaction?",
+            "Any known allergies?",
+            "kya aapko koi allergy hai?",
+            "kya aapko kisi dawa se allergy hai?",
+            "क्या आपको कोई एलर्जी है?",
+        ]
+        for utterance in inquiries:
+            assessment = engine.analyze_text(utterance)
+            assert assessment.safety_state == SafetyState.STANDARD, f"Failed for inquiry: {utterance}"
+            assert assessment.facts == [], f"Expected no critical facts for inquiry: {utterance}"
+
 
 # =============================================================================
 # 2. MEDICINE DETECTION

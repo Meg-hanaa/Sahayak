@@ -139,6 +139,24 @@ NEGATION_CUES = re.compile(
     re.IGNORECASE,
 )
 
+# Allergy inquiry patterns (screening questions from doctor/provider that do not declare an allergy)
+ALLERGY_INQUIRY_PATTERNS = [
+    re.compile(
+        r"\b(are\s+you\s+allergic|do\s+you\s+have\s+(?:any\s+|an\s+)?allerg(?:y|ies)|allergic\s+to\s+anything|"
+        r"any\s+(?:known\s+)?allerg(?:y|ies)|have\s+you\s+(?:ever\s+)?had\s+(?:an\s+|any\s+)?allerg(?:y|ic|ies)|"
+        r"if\s+you\s+are\s+allergic|whether\s+you\s+are\s+allergic|if\s+you\s+have\s+(?:any\s+|an\s+)?allerg(?:y|ies)|"
+        r"kya\s+aapko\s+(?:koi\s+)?allergy|koi\s+allergy\s+to\s+nahi|kisi\s+(?:cheez|dawa)\s+se\s+allergy)\b",
+        re.IGNORECASE,
+    ),
+    re.compile(r"\b(allergic\s+to\s+(?:anything|something|any\s+medicine|any\s+drug|any\s+food))\b", re.IGNORECASE),
+    re.compile(r"\b(any\s+allergies\s+to\s+(?:anything|medications?|medicines?|drugs?))\b", re.IGNORECASE),
+    re.compile(
+        r"(\u0915\u094d\u092f\u093e\s+\u0906\u092a\u0915\u094b\s+(?:[^.!?\n]*?)\u090f\u0932\u0930\u094d\u091c\u0940|"
+        r"\u0915\u094b\u0908\s+\u090f\u0932\u0930\u094d\u091c\u0940\s+\u0924\u094b\s+\u0928\u0939\u0940\u0902)",
+        re.IGNORECASE,
+    ),
+]
+
 
 class SafetyRuleEngine:
     """Deterministic analyzer executing safety rules over text and turn metadata."""
@@ -266,9 +284,15 @@ class SafetyRuleEngine:
         # -------------------------------------------------------------
         # 4. GLOSSARY TERMS (Allergies, Medicines, Severe Symptoms, Negations)
         # -------------------------------------------------------------
+        is_allergy_inquiry = any(p.search(norm_text) for p in ALLERGY_INQUIRY_PATTERNS)
+
         for gm in glossary_matches:
             # Skip emergencies as they are handled in section 1
             if gm.category == CriticalFactCategory.EMERGENCY:
+                continue
+
+            # Skip allergy matches during screening inquiries (e.g. "Are you allergic to anything?", "Do you have an allergy to penicillin?")
+            if gm.category == CriticalFactCategory.ALLERGY and is_allergy_inquiry:
                 continue
 
             # Check if this term is within a negated context or explicit negation
@@ -320,6 +344,8 @@ class SafetyRuleEngine:
                 pre_match = re.search(r"\b(allergic\s+to|allergy\s+to|reaction\s+to)\s*$", pre_window, re.IGNORECASE)
                 post_match = re.search(r"^\s*(allergy|reaction|se\s+allergy|\u090f\u0932\u0930\u094d\u091c\u0940)", post_window, re.IGNORECASE)
                 if pre_match or post_match:
+                    if is_allergy_inquiry:
+                        continue
                     category = CriticalFactCategory.ALLERGY
 
             if is_negated:
